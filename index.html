@@ -306,7 +306,7 @@
             display: block;
             width: 220px; /* 너 svg/말풍선 크기에 맞춰서 조정해 */
             height: auto;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,));
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
             }
 
 
@@ -444,378 +444,527 @@
 
 
 <script>
-            /* ============ 상태/DOM ============ */
-        const groups = ['dial','numerals','marks','hands'];
-        const stageEl = document.getElementById('stage');
-        const archiveList = document.getElementById('archiveList');
-        const palette = document.getElementById('color-palette');
+/* ============ 상태/DOM ============ */
+const groups = ['dial','numerals','marks','hands'];
+const stageEl = document.getElementById('stage');
+const archiveList = document.getElementById('archiveList');
+const palette = document.getElementById('color-palette');
 
-        const imgEls = {
-        dial:      document.getElementById('L-dial'),
-        numerals:  document.getElementById('L-numerals'),
-        marks:     document.getElementById('L-marks'),
-        hands:     document.getElementById('L-hands')
-        };
+const imgEls = {
+  dial:     document.getElementById('L-dial'),
+  numerals: document.getElementById('L-numerals'),
+  marks:    document.getElementById('L-marks'),
 
-        const defaultColors = {
-        dial: '#7ED0FF',
-        numerals: '#F7F0A4',
-        marks: '#D3F4C9',
-        hands: '#5F272C'
-        };
+  // hands는 세 장
+  hour:     document.getElementById('L-hour'),
+  minute:   document.getElementById('L-minute'),
+  second:   document.getElementById('L-second'),
+};
 
-        let state = {
-        dial:      { shape:null, color: defaultColors.dial },
-        numerals:  { shape:null, color: defaultColors.numerals },
-        marks:     { shape:null, color: defaultColors.marks },
-        hands:     { shape:null, color: defaultColors.hands }
-        };
+const defaultColors = {
+  dial: '#7ED0FF',
+  numerals: '#F7F0A4',
+  marks: '#D3F4C9',
+  hands: '#5F272C'
+};
 
-        /* 힌트 풍선 관련 */
-        const hintEl = document.getElementById('color-hint');
-        let hintDismissed = false;
+let state = {
+  dial:      { shape:null, color: defaultColors.dial },
+  numerals:  { shape:null, color: defaultColors.numerals },
+  marks:     { shape:null, color: defaultColors.marks },
+  hands:     { shape:null, color: defaultColors.hands }
+};
 
-        /* ============ 파일명 매핑(예외 보정) ============ */
-        /* 규칙: ./svg/{group}_{value}.svg */
-        const OVERRIDE = {
-        numerals: {
-            'numbers': 'numbers',
-            'big squares': 'big squares'
-        }
-        };
+/* 힌트 풍선 관련 */
+const hintEl = document.getElementById('color-hint');
+let hintDismissed = false;
 
-        function filePath(group, value){
-        const mapped = (OVERRIDE[group] && OVERRIDE[group][value]) ? OVERRIDE[group][value] : value;
-        return `./svg/${group}_${mapped}.svg`;
-        }
+/* ============ 파일명 매핑(예외 보정) ============ */
+/* 규칙: ./svg/{group}_{value}.svg */
+const OVERRIDE = {
+  numerals: {
+    'numbers': 'numbers',
+    'big squares': 'big squares'
+  }
+};
 
-        /* ============ 히스토리(뒤/앞) ============ */
-        const history = [];
-        let histIndex = -1;
+function filePath(group, value){
+  const mapped = (OVERRIDE[group] && OVERRIDE[group][value]) ? OVERRIDE[group][value] : value;
+  return `./svg/${group}_${mapped}.svg`;
+}
 
-        function pushHistory(){
-        history.splice(histIndex+1);
-        history.push(JSON.parse(JSON.stringify(state)));
-        histIndex = history.length - 1;
-        updateNavButtons();
-        }
-        function restoreFromHistory(i){
-        if(i<0 || i>=history.length) return;
-        state = JSON.parse(JSON.stringify(history[i]));
-        histIndex = i;
-        applyStateToUI();
-        updateNavButtons();
-        }
-        function updateNavButtons(){
-        const b = document.getElementById('btn-back');
-        const f = document.getElementById('btn-forward');
-        if (b) b.style.opacity = (histIndex>0)?1:0.4;
-        if (f) f.style.opacity = (histIndex<history.length-1)?1:0.4;
-        }
+/* ============ 히스토리(뒤/앞) ============ */
+const history = [];
+let histIndex = -1;
 
-        /* ============ SVG 색 적용 ============ */
-        async function colorizeSVGToURL(url, color){
-        try{
-            const res = await fetch(url);
-            const text = await res.text();
-            const styled = text.replace(
-            /<svg([^>]*)>/i,
-            (m,attrs)=>`<svg${attrs}><style>*{fill:${color};stroke:${color};}</style>`
-            );
-            const blob = new Blob([styled], {type:'image/svg+xml'});
-            return URL.createObjectURL(blob);
-        }catch(e){
-            console.warn('fetch/colorize 실패 → 원본 경로 사용:', url, e);
-            return url;
-        }
-        }
+function pushHistory(){
+  history.splice(histIndex+1);
+  history.push(JSON.parse(JSON.stringify(state)));
+  histIndex = history.length - 1;
+  updateNavButtons();
+}
+function restoreFromHistory(i){
+  if(i<0 || i>=history.length) return;
+  state = JSON.parse(JSON.stringify(history[i]));
+  histIndex = i;
+  applyStateToUI();
+  updateNavButtons();
+}
+function updateNavButtons(){
+  const b = document.getElementById('btn-back');
+  const f = document.getElementById('btn-forward');
+  if (b) b.style.opacity = (histIndex>0)?1:0.4;
+  if (f) f.style.opacity = (histIndex<history.length-1)?1:0.4;
+}
 
-        /* ============ 프리뷰 반영 ============ */
-        async function applyLayer(group){
-        const {shape, color} = state[group];
-        const img = imgEls[group];
-        if(!shape){ 
-            img.removeAttribute('src'); 
-            return; 
-        }
+/* ============ SVG 색 적용 ============ */
+async function colorizeSVGToURL(url, color){
+  try{
+    const res = await fetch(url);
+    const text = await res.text();
+    const styled = text.replace(
+      /<svg([^>]*)>/i,
+      (m,attrs)=>`<svg${attrs}><style>*{fill:${color};stroke:${color};}</style>`
+    );
+    const blob = new Blob([styled], {type:'image/svg+xml'});
+    return URL.createObjectURL(blob);
+  }catch(e){
+    console.warn('fetch/colorize 실패 → 원본 경로 사용:', url, e);
+    return url;
+  }
+}
 
-        const src = filePath(group, shape);
-        const coloredURL = await colorizeSVGToURL(src, color);
-        img.src = coloredURL;
+/* ============ 레이어 반영 (dial / numerals / marks) ============ */
+async function applyLayer(group){
+  const {shape, color} = state[group];
+  const img = imgEls[group];
+  if(!img) return; // safety
+  if(!shape){ 
+    img.removeAttribute('src'); 
+    return; 
+  }
 
-        // 기본 크기: 90% (가운데 배치)
-        let size = 90;
+  const src = filePath(group, shape);
+  const coloredURL = await colorizeSVGToURL(src, color);
+  img.src = coloredURL;
 
-        // dial이 'house'일 때 numerals만 90%로 한 번 더 축소(=81%)
-        if (group === 'numerals' && state.dial.shape === 'house') {
-            size = 90 * 0.9; // 81
-        }
+  // 기본 크기: 90% (가운데 배치)
+  let size = 90;
 
-        const offset = (100 - size) / 2;
+  // dial이 'house'일 때 numerals만 살짝 더 작게
+  if (group === 'numerals' && state.dial.shape === 'house') {
+    size = 90 * 0.9; // 81
+  }
 
-        img.style.width = `${size}%`;
-        img.style.height = `${size}%`;
-        img.style.objectFit = 'contain';
-        img.style.position = 'absolute';
-        img.style.left = `${offset}%`;
-        img.style.top = `${offset}%`;
-        // (필요하다면 drop-shadow 같은 효과 여기서도 줄 수 있음)
-        }
+  const offset = (100 - size) / 2;
 
-        /* 전체 state를 UI에 동기화 */
-        function applyStateToUI(){
-        document.querySelectorAll('.group').forEach(g=>{
-            const group = g.dataset.group;
-            const sel = state[group].shape;
-            g.querySelectorAll('.opt').forEach(o=>{
-            o.classList.toggle('active', o.dataset.value === sel);
-            });
-            const sw = g.querySelector('.color-swatch');
-            if(sw) sw.style.backgroundColor = state[group].color;
-        });
-        groups.forEach(applyLayer);
-        }
+  img.style.width = `${size}%`;
+  img.style.height = `${size}%`;
+  img.style.objectFit = 'contain';
+  img.style.position = 'absolute';
+  img.style.left = `${offset}%`;
+  img.style.top = `${offset}%`;
+}
 
-        /* ============ 옵션(도형) 클릭 ============ */
-        document.querySelectorAll('.group .opt').forEach(opt=>{
-        opt.addEventListener('click', async (e)=>{
-            const group = e.currentTarget.closest('.group').dataset.group;
-            const value = e.currentTarget.dataset.value;
-            state[group].shape = value;
+/* ============ hands 전용 반영 (hour / minute / second) ============ */
+async function applyHandsLayer() {
+  const { shape, color } = state.hands;
 
-            const wrap = e.currentTarget.parentElement;
-            wrap.querySelectorAll('.opt').forEach(el=>el.classList.remove('active'));
-            e.currentTarget.classList.add('active');
+  if (!shape) {
+    // hands 선택 안 한 상태 → 다 지우기
+    imgEls.hour.removeAttribute('src');
+    imgEls.minute.removeAttribute('src');
+    imgEls.second.removeAttribute('src');
+    return;
+  }
 
-            await applyLayer(group);
-            pushHistory();
-        });
-        });
+  // 파일명 규칙:
+  // hands_{shape}_hour.svg
+  // hands_{shape}_minute.svg
+  // hands_second.svg (초침은 공통)
+  const hourPath   = `./svg/hands_${shape}_hour.svg`;
+  const minutePath = `./svg/hands_${shape}_minute.svg`;
+  const secondPath = `./svg/hands_second.svg`;
 
-        /* ============ 팔레트(컬러 변경) ============ */
-        let currentSwatch = null;
-        let currentGroup = null;
+  const hourURL   = await colorizeSVGToURL(hourPath,   color);
+  const minuteURL = await colorizeSVGToURL(minutePath, color);
+  const secondURL = await colorizeSVGToURL(secondPath, color);
 
-        /* numerals 스와치 오른쪽에 힌트를 붙이는 함수 */
-        function positionHintToNumerals() {
-        if (!hintEl) return;
-        if (hintDismissed) return; // 이미 숨겨졌으면 굳이 안 옮겨도 됨
+  imgEls.hour.src   = hourURL;
+  imgEls.minute.src = minuteURL;
+  imgEls.second.src = secondURL;
 
-        // numerals 그룹의 컬러 스와치 (연노랑 칸)
-        const numeralsSwatch = document.querySelector('.group[data-group="numerals"] .color-swatch');
-        if (!numeralsSwatch) return;
+  // 공통 배치 (시계 중앙에 맞추기)
+  [imgEls.hour, imgEls.minute, imgEls.second].forEach(img => {
+    img.style.width      = `90%`;
+    img.style.height     = `90%`;
+    img.style.objectFit  = 'contain';
+    img.style.position   = 'absolute';
+    img.style.left       = `5%`;  // (100-90)/2
+    img.style.top        = `5%`;
+    // transform-origin은 CSS .hand-layer에서 이미 50% 50%
+    // 회전은 updateHandRotation()에서 계속 덮어씀
+  });
+}
 
-        // 뷰포트 기준 좌표 읽기
-        const rect = numeralsSwatch.getBoundingClientRect();
+/* ============ 바늘 회전 ============ */
+/* 현재 시간을 읽어서 각 침의 회전각을 적용한다 */
+function updateHandRotation() {
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const s = now.getSeconds();
 
-        // 힌트가 "스와치 오른쪽 살짝 바깥, 위로 약간" 위치하도록 오프셋
-        const offsetX = 8;    // 오른쪽으로 띄우기
-        const offsetY = -10;  // 살짝 위로
+  // 각도 계산
+  // 시침: 12시간 기준, 분/초 반영
+  const hourDeg   = ((h % 12) + m/60 + s/3600) * 30;   // 360/12 = 30
+  // 분침: 초 반영
+  const minuteDeg = (m + s/60) * 6;                    // 360/60 = 6
+  // 초침
+  const secondDeg = s * 6;
 
-        const hintLeft = rect.right + offsetX;
-        const hintTop  = rect.top + offsetY;
+  // 해당 각도를 transform에 넣는다
+  if (imgEls.hour) {
+    imgEls.hour.style.transform   = `rotate(${hourDeg}deg)`;
+  }
+  if (imgEls.minute) {
+    imgEls.minute.style.transform = `rotate(${minuteDeg}deg)`;
+  }
+  if (imgEls.second) {
+    imgEls.second.style.transform = `rotate(${secondDeg}deg)`;
+  }
+}
 
-        hintEl.style.left = hintLeft + 'px';
-        hintEl.style.top  = hintTop  + 'px';
-        }
-
-        document.querySelectorAll('.group .color-swatch').forEach(swatch=>{
-    swatch.addEventListener('click',(e)=>{
-        const clickedSwatch = e.currentTarget;
-        const group = clickedSwatch.closest('.group').dataset.group;
-
-        // 이미 같은 스와치를 눌렀고 팔레트가 열려 있다면 → 닫기
-        if (!palette.hidden && currentSwatch === clickedSwatch) {
-        palette.hidden = true;
-        currentSwatch = null;
-        currentGroup = null;
-        return;
-        }
-
-        // 새로운 스와치를 클릭했거나, 닫혀있다면 → 열기
-        currentSwatch = clickedSwatch;
-        currentGroup  = group;
-
-        const rect = currentSwatch.getBoundingClientRect();
-        palette.style.left = `${rect.left + window.scrollX}px`;
-        palette.style.top  = `${rect.bottom + 2 + window.scrollY}px`;
-        palette.hidden = false;
-
-        // 힌트 제거 (처음 한 번만)
-        if (!hintDismissed && hintEl) {
-        hintEl.classList.add('hidden');
-        hintDismissed = true;
-        }
+/* ============ 전체 state → 화면 반영 ============ */
+function applyStateToUI(){
+  // 좌측 메뉴 active 표시 / 스와치 색 반영
+  document.querySelectorAll('.group').forEach(g=>{
+    const group = g.dataset.group;
+    const sel = state[group].shape;
+    g.querySelectorAll('.opt').forEach(o=>{
+      o.classList.toggle('active', o.dataset.value === sel);
     });
-    });
+    const sw = g.querySelector('.color-swatch');
+    if(sw) sw.style.backgroundColor = state[group].color;
+  });
 
+  // dial / numerals / marks
+  ['dial','numerals','marks'].forEach(applyLayer);
 
-        /* 팔레트에서 색 버튼 클릭 -> 실제 색 반영 */
-        palette.addEventListener('click', async (e)=>{
-        const btn = e.target.closest('button[data-color]');
-        if(!btn) return;
+  // hands
+  applyHandsLayer();
+  // 회전 갱신도 즉시 한 번 (새 디자인 선택 직후 바로 각도 맞춰 보이게)
+  updateHandRotation();
+}
 
-        const color = btn.dataset.color;
-        if(currentGroup){
-            state[currentGroup].color = color;
+/* ============ 옵션(도형) 클릭 ============ */
+document.querySelectorAll('.group .opt').forEach(opt=>{
+  opt.addEventListener('click', async (e)=>{
+    const group = e.currentTarget.closest('.group').dataset.group;
+    const value = e.currentTarget.dataset.value;
+    state[group].shape = value;
 
-            if(currentSwatch){
-            currentSwatch.style.backgroundColor = color;
-            }
+    const wrap = e.currentTarget.parentElement;
+    wrap.querySelectorAll('.opt').forEach(el=>el.classList.remove('active'));
+    e.currentTarget.classList.add('active');
 
-            await applyLayer(currentGroup);
-            pushHistory();
-        }
+    if (group === 'hands') {
+      await applyHandsLayer();
+    } else {
+      await applyLayer(group);
+    }
 
-        palette.hidden = true;
-        currentSwatch = null; 
-        currentGroup = null;
+    // 최신 상태 반영 + 히스토리
+    updateHandRotation();
+    pushHistory();
+  });
+});
 
-        // 혹시 아직 힌트 안 없앤 상태면 여기서도 강제로 없애
-        if (!hintDismissed && hintEl) {
-            hintEl.classList.add('hidden');
-            hintDismissed = true;
-        }
-        });
+/* ============ 팔레트(컬러 변경) ============ */
+let currentSwatch = null;
+let currentGroup = null;
 
-        /* 팔레트 외부 클릭 시 팔레트 닫기 */
-        document.addEventListener('click',(e)=>{
-        const clickedSwatch = e.target.classList && e.target.classList.contains('color-swatch');
-        if(!palette.hidden && !palette.contains(e.target) && !clickedSwatch){
-            palette.hidden = true;
-            currentSwatch = null; 
-            currentGroup = null;
-        }
-        });
+/* numerals 스와치 오른쪽에 힌트를 붙이는 함수 */
+function positionHintToNumerals() {
+  if (!hintEl) return;
+  if (hintDismissed) return;
 
-        /* ============ 뒤/앞 버튼 ============ */
-        const backBtn = document.getElementById('btn-back');
-        const fwdBtn  = document.getElementById('btn-forward');
+  const numeralsSwatch = document.querySelector('.group[data-group="numerals"] .color-swatch');
+  if (!numeralsSwatch) return;
 
-        backBtn && backBtn.addEventListener('click', ()=>{
-        if(histIndex>0) restoreFromHistory(histIndex-1);
-        });
+  const rect = numeralsSwatch.getBoundingClientRect();
+  const offsetX = 8;
+  const offsetY = -10;
 
-        fwdBtn && fwdBtn.addEventListener('click', ()=>{
-        if(histIndex<history.length-1) restoreFromHistory(histIndex+1);
-        });
+  hintEl.style.left = (rect.right + offsetX) + 'px';
+  hintEl.style.top  = (rect.top   + offsetY) + 'px';
+}
 
-        /* ============ 스냅샷 합성 (complete용) ============ */
-        async function composeSnapshotDataURL() {
-        const size = 1000; // 큰 해상도로 합성해서 깨짐 줄이기
-        const canvas = document.createElement('canvas');
-        canvas.width = size; 
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
+/* 스와치 클릭 → 팔레트 토글 / 힌트 사라짐 */
+document.querySelectorAll('.group .color-swatch').forEach(swatch=>{
+  swatch.addEventListener('click',(e)=>{
+    const clickedSwatch = e.currentTarget;
+    const group = clickedSwatch.closest('.group').dataset.group;
 
-        for (const g of groups) {
-            const img = imgEls[g];
-            if (img && img.src) {
-            if (!img.complete) {
-                // 아직 로드 안됐으면 로딩 끝날 때까지 기다림
-                await new Promise(r => img.addEventListener('load', r, { once:true }));
-            }
-            ctx.drawImage(img, 0, 0, size, size);
-            }
-        }
-        return canvas.toDataURL('image/png');
-        }
+    // 이미 같은 스와치를 눌렀고 팔레트가 열려있으면 닫기
+    if (!palette.hidden && currentSwatch === clickedSwatch) {
+      palette.hidden = true;
+      currentSwatch = null;
+      currentGroup = null;
+      return;
+    }
 
-        /* ============ 팝업 관련 (complete!) ============ */
-        const popup         = document.getElementById('popup');
-        const minutesNowEl  = document.getElementById('minutesNow');
-        const createNewBtn  = document.getElementById('btn-create-new');
-        const logo          = document.getElementById('logo');
-        const closeBtn      = document.querySelector('#popup .close');
-        let pendingSnapshot = null;
+    // 새로 열기
+    currentSwatch = clickedSwatch;
+    currentGroup  = group;
 
-        function pad(n){ return String(n).padStart(2,'0'); }
-        function nowHHMMSS(){
-        const d = new Date();
-        return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-        }
+    const rect = currentSwatch.getBoundingClientRect();
+    palette.style.left = `${rect.left + window.scrollX}px`;
+    palette.style.top  = `${rect.bottom + 2 + window.scrollY}px`;
+    palette.hidden = false;
 
-        /* complete! 버튼 -> 팝업 띄우기 */
-        document.getElementById('btn-complete').addEventListener('click', async ()=>{
-        // 현재 프리뷰 스냅샷 저장
-        pendingSnapshot = await composeSnapshotDataURL();
+    // 힌트 처음 누를 때 사라지게
+    if (!hintDismissed && hintEl) {
+      hintEl.classList.add('hidden');
+      hintDismissed = true;
+    }
+  });
+});
 
-        // 팝업 왼쪽 박스 중앙에 시계 이미지 깔기
-        const snapshotEl = document.getElementById('popupSnapshot');
-        if (snapshotEl && pendingSnapshot) {
-            snapshotEl.src = pendingSnapshot;
-        }
+/* 팔레트에서 색 버튼 클릭 -> 실제 색 반영 */
+palette.addEventListener('click', async (e)=>{
+  const btn = e.target.closest('button[data-color]');
+  if(!btn) return;
 
-        // 시간 찍기
-        if (minutesNowEl) minutesNowEl.textContent = nowHHMMSS();
+  const color = btn.dataset.color;
+  if (currentGroup) {
+    state[currentGroup].color = color;
 
-        // 팝업 열기
-        if (popup) popup.classList.add('show');
-        });
+    // 스와치 색 바꿔주기
+    if (currentSwatch) {
+      currentSwatch.style.backgroundColor = color;
+    }
 
-        /* 팝업의 create new! -> 아카이브 prepend + 초기화 + 팝업 닫기 */
-        createNewBtn && createNewBtn.addEventListener('click', ()=>{
-        if (pendingSnapshot) {
-            const thumb = new Image();
-            thumb.src = pendingSnapshot;
-            thumb.style.width = '80%';
-            thumb.style.display = 'block';
-            thumb.style.margin = '16px auto';
+    // hands vs 나머지
+    if (currentGroup === 'hands') {
+      await applyHandsLayer();
+    } else {
+      await applyLayer(currentGroup);
+    }
 
-            if (archiveList.firstChild) {
-            archiveList.insertBefore(thumb, archiveList.firstChild);
-            } else {
-            archiveList.appendChild(thumb);
-            }
-        }
+    // 색 바꾼 후에도 각도 유지
+    updateHandRotation();
 
-        // 프리뷰 초기화 (선택 전부 해제)
-        groups.forEach(g=>{
-            state[g].shape = null;
-            imgEls[g].removeAttribute('src');
-            const groupEl = document.querySelector(`.group[data-group="${g}"]`);
-            groupEl && groupEl.querySelectorAll('.opt').forEach(o=>o.classList.remove('active'));
-        });
+    pushHistory();
+  }
 
-        pushHistory();
+  // 팔레트 닫기
+  palette.hidden = true;
+  currentSwatch = null; 
+  currentGroup = null;
 
-        pendingSnapshot = null;
-        popup && popup.classList.remove('show');
-        });
+  // 힌트 강제 off (혹시 아직 남아 있으면)
+  if (!hintDismissed && hintEl) {
+    hintEl.classList.add('hidden');
+    hintDismissed = true;
+  }
+});
 
-        /* 로고 클릭해도 팝업 닫히게 */
-        logo && logo.addEventListener('click', () => {
-        popup && popup.classList.remove('show');
-        });
+/* 팔레트 외부 클릭 시 팔레트 닫기 */
+document.addEventListener('click',(e)=>{
+  const clickedSwatch = e.target.classList && e.target.classList.contains('color-swatch');
+  if(!palette.hidden && !palette.contains(e.target) && !clickedSwatch){
+    palette.hidden = true;
+    currentSwatch = null; 
+    currentGroup = null;
+  }
+});
 
-        /* 팝업 닫기(X) / 바깥 클릭 */
-        closeBtn && closeBtn.addEventListener('click', ()=> popup && popup.classList.remove('show'));
-        popup && popup.addEventListener('click', (e)=>{
-        if (e.target === popup) popup.classList.remove('show');
-        });
+/* ============ 뒤/앞 버튼 ============ */
+const backBtn = document.getElementById('btn-back');
+const fwdBtn  = document.getElementById('btn-forward');
 
-        /* ============ 초기 세팅 ============ */
-        (function init(){
-        // 각 그룹별 스와치에 초기 색상 반영
-        groups.forEach(g=>{
-            const sw = document.querySelector(`.group[data-group="${g}"] .color-swatch`);
-            if(sw) sw.style.backgroundColor = state[g].color;
-        });
+backBtn && backBtn.addEventListener('click', ()=>{
+  if(histIndex>0) restoreFromHistory(histIndex-1);
+});
 
-        // 팔레트 버튼(색 칩들)에도 각각 색 입히기
-        document.querySelectorAll('#color-palette button[data-color]').forEach(btn=>{
-            btn.style.backgroundColor = btn.dataset.color;
-            btn.title = btn.dataset.color;
-        });
+fwdBtn && fwdBtn.addEventListener('click', ()=>{
+  if(histIndex<history.length-1) restoreFromHistory(histIndex+1);
+});
 
-        // 첫 상태 기록
-        pushHistory();
+/* ============ 스냅샷 합성 (complete용) ============ */
+async function composeSnapshotDataURL() {
+  const size = 1000;
+  const canvas = document.createElement('canvas');
+  canvas.width = size; 
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
 
-        // 힌트 위치 numerals 스와치 기준으로 맞추기
-        positionHintToNumerals();
-        })();
+  // dial → numerals → marks → hands(hour/minute/second)
+  const drawList = [
+    imgEls.dial,
+    imgEls.numerals,
+    imgEls.marks,
+    imgEls.hour,
+    imgEls.minute,
+    imgEls.second,
+  ];
 
-        /* 창 크기 바뀔 때마다 힌트 위치 갱신 */
-        window.addEventListener('resize', positionHintToNumerals);
+  for (const img of drawList) {
+    if (!img || !img.src) continue;
+    if (!img.complete) {
+      await new Promise(r => img.addEventListener('load', r, { once:true }));
+    }
+    ctx.save();
+
+    // 손 시계침은 회전(transform) 적용된 상태라 그냥 drawImage 하면 "돌기 전 모습"이 찍힘.
+    // popup/아카이브는 'complete!' 순간의 각도 그대로 정지된 상태로 보이면 좋으니까,
+    // 지금 transform(rotate) 값으로 캔버스도 돌려서 그려주자.
+
+    // transform에서 rotate(XXXdeg)만 뽑아서 적용
+    const match = img.style.transform.match(/rotate\(([-0-9.]+)deg\)/);
+    if (match) {
+      const deg = parseFloat(match[1]);
+      const rad = deg * Math.PI/180;
+
+      // drawImage는 좌상단 기준이니까,
+      // 우리는 1000x1000 전체에 90%짜리 이미지를 5% 오프셋으로 두고 있음.
+      // (applyHandsLayer에서 width/height=90%, left=5%, top=5%)
+      // 이걸 그대로 재현:
+      const boxX = 0.05 * size;      // 5%
+      const boxY = 0.05 * size;
+      const boxW = 0.90 * size;
+      const boxH = 0.90 * size;
+
+      // 회전은 그 박스의 중앙 기준
+      const cx = boxX + boxW/2;
+      const cy = boxY + boxH/2;
+
+      ctx.translate(cx, cy);
+      ctx.rotate(rad);
+      ctx.translate(-cx, -cy);
+
+      ctx.drawImage(img, boxX, boxY, boxW, boxH);
+    } else {
+      // 회전 없으면 그냥 전체에 맞춰서 (dial 등)
+      ctx.drawImage(img, 0, 0, size, size);
+    }
+
+    ctx.restore();
+  }
+
+  return canvas.toDataURL('image/png');
+}
+
+/* ============ 팝업 관련 (complete!) ============ */
+const popup         = document.getElementById('popup');
+const minutesNowEl  = document.getElementById('minutesNow');
+const createNewBtn  = document.getElementById('btn-create-new');
+const logo          = document.getElementById('logo');
+const closeBtn      = document.querySelector('#popup .close');
+let pendingSnapshot = null;
+
+function pad(n){ return String(n).padStart(2,'0'); }
+function nowHHMMSS(){
+  const d = new Date();
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+/* complete! 버튼 -> 팝업 띄우기 */
+document.getElementById('btn-complete').addEventListener('click', async ()=>{
+  // 현재 프리뷰(=현재 각도 그대로) 스냅샷 저장
+  pendingSnapshot = await composeSnapshotDataURL();
+
+  // 팝업 왼쪽 박스 중앙에 시계 이미지 깔기
+  const snapshotEl = document.getElementById('popupSnapshot');
+  if (snapshotEl && pendingSnapshot) {
+    snapshotEl.src = pendingSnapshot;
+  }
+
+  // 시간 찍기
+  if (minutesNowEl) minutesNowEl.textContent = nowHHMMSS();
+
+  // 팝업 열기
+  if (popup) popup.classList.add('show');
+});
+
+/* 팝업의 create new! -> 아카이브 prepend + 초기화 + 팝업 닫기 */
+createNewBtn && createNewBtn.addEventListener('click', ()=>{
+  if (pendingSnapshot) {
+    const thumb = new Image();
+    thumb.src = pendingSnapshot;
+    thumb.style.width = '80%';
+    thumb.style.display = 'block';
+    thumb.style.margin = '16px auto';
+
+    if (archiveList.firstChild) {
+      archiveList.insertBefore(thumb, archiveList.firstChild);
+    } else {
+      archiveList.appendChild(thumb);
+    }
+  }
+
+  // 프리뷰 초기화 (선택 전부 해제)
+  state.dial.shape      = null;
+  state.numerals.shape  = null;
+  state.marks.shape     = null;
+  state.hands.shape     = null;
+
+  imgEls.dial.removeAttribute('src');
+  imgEls.numerals.removeAttribute('src');
+  imgEls.marks.removeAttribute('src');
+  imgEls.hour.removeAttribute('src');
+  imgEls.minute.removeAttribute('src');
+  imgEls.second.removeAttribute('src');
+
+  document.querySelectorAll('.group .opt').forEach(o=>o.classList.remove('active'));
+
+  pushHistory();
+
+  pendingSnapshot = null;
+  popup && popup.classList.remove('show');
+});
+
+/* 로고 클릭해도 팝업 닫히게 */
+logo && logo.addEventListener('click', () => {
+  popup && popup.classList.remove('show');
+});
+
+/* 팝업 닫기(X) / 바깥 클릭 */
+closeBtn && closeBtn.addEventListener('click', ()=> popup && popup.classList.remove('show'));
+popup && popup.addEventListener('click', (e)=>{
+  if (e.target === popup) popup.classList.remove('show');
+});
+
+/* ============ 초기 세팅 ============ */
+(function init(){
+  // 각 그룹별 스와치에 초기 색상 반영
+  groups.forEach(g=>{
+    const sw = document.querySelector(`.group[data-group="${g}"] .color-swatch`);
+    if(sw) sw.style.backgroundColor = state[g].color;
+  });
+
+  // 팔레트 버튼들 배경색 세팅
+  document.querySelectorAll('#color-palette button[data-color]').forEach(btn=>{
+    btn.style.backgroundColor = btn.dataset.color;
+    btn.title = btn.dataset.color;
+  });
+
+  // 첫 상태 기록
+  pushHistory();
+
+  // 힌트 위치 numerals 스와치 기준으로 맞추기
+  positionHintToNumerals();
+
+  // 첫 회전 세팅
+  updateHandRotation();
+})();
+
+/* 창 크기 바뀔 때마다 힌트 위치 갱신 */
+window.addEventListener('resize', positionHintToNumerals);
+
+/* 매초마다 바늘 회전 업데이트 */
+setInterval(updateHandRotation, 1000);
+
 
 </script>
