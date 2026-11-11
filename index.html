@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>mmm</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        html, body {
+            overflow: hidden;
+            margin: 0; /* 기본 8px 여백 때문에 100vh를 넘쳐 화면이 밀리던 문제 수정 */
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        button {
+            all: unset;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .container {
+            display: flex;
+            margin: 0;
+            /* 1080px 높이에서 기존 1.5rem과 동일, 화면이 낮아지면 함께 줄어듦 */
+            font-size: clamp(1rem, 2.222vh, 1.5rem);
+        }
+
+        /* -------- 왼쪽 로고 -------- */
+        .box-logo {
+            position: relative;
+            width: 15%;
+            height: 100vh;
+            background-color: #BF1122;
+            box-shadow: 0 0 0 2px #BF1122;
+        }
+        #logo {
+            cursor: pointer;
+        }
+
+        /* -------- 옵션 영역 -------- */
+        .box-custom-options {
+            position: relative;
+            width: 15%;
+            height: 100vh;
+            background-color: #E6E6E6;
+            box-shadow: 0 0 0 2px #BF1122;
+            z-index: 10;
+            overflow-y: auto;      /* 낮은 화면에서 옵션이 잘리지 않도록 */
+            scrollbar-width: none;
+        }
+        .box-custom-options::-webkit-scrollbar { display: none; }
+
+        .option-head {
+            display: inline-flex;
+            width: 100%;
+            color: #FFFFFF;
+            box-sizing: border-box;
+        }
+
+        /* 왼쪽 제목 */
+        .title {
+            flex: 0 0 60%;
+            padding-left: 8px;
+            padding-top: 2px;
+            padding-bottom: 2px;
+            background-color: #BF1122;
+            box-shadow: 0 0 0 2px #BF1122;
+            box-sizing: border-box;
+        }
+
+        /* 오른쪽 색상칸 */
+        .color-swatch {
+            flex: 0 0 40%;
+            box-shadow: 0 0 0 2px #BF1122;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+
+        /* 컬러 팔레트 */
+        #color-palette {
+            position: absolute;
+            z-index: 9999;
+            padding: 0px;
+            background: #fff;
+            box-shadow: 0 0 0 2px #BF1122;
+            display: grid;
+            grid-template-columns: repeat(5, 60px);
+            gap: 0px;
+        }
+        #color-palette[hidden] { display: none; }
+        #color-palette button {
+            width: 60px;
+            height: 50px;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* 각 옵션 */
+        .options {
+            background-color: #E6E6E6;
+            color: #BF1122;
+            padding-left: 8px;
+            padding-top: 6px;
+            padding-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .opt {
+            display: block;
+            cursor: pointer;
+            user-select: none;
+        }
+        @media (hover: hover) {
+            .opt:hover { background: #dcdcdc; }
+        }
+        .opt.active { font-weight: 600; }
+
+        /* -------- 미리보기 -------- */
+        .box-preview {
+            position: relative;
+            width: 50%;
+            height: 100vh;
+            background-color: #f9f9f9;
+            box-shadow: 0 0 0 2px #BF1122;
+        }
+
+        .menu-back-forward {
+            display: flex;
+            width: 100%;
+            color: #BF1122;
+            border-bottom: 2px solid #BF1122;
+            position: relative;
+            z-index: 1000;
+        }
+
+        #btn-back,
+        #btn-forward {
+            flex: 1 1 0;
+            box-sizing: border-box;
+            background-color: #ffffff;
+            padding-left: 8px;
+            padding-top: 2px;
+            padding-bottom: 2px;
+            font-size: inherit;
+            line-height: 1.2;
+            cursor: pointer;
+            border: none;
+            color: #BF1122;
+        }
+
+        @media (hover: hover) {
+            #btn-back:hover, #btn-forward:hover {
+                background-color: #BF1122;
+                color: #FFFFFF;
+            }
+        }
+
+        #btn-forward {
+            border-left: 2px solid #BF1122;
+        }
+
+        /* complete! 버튼 */
+        .complete-bar {
+            display: flex;
+            width: 100%;
+            position: absolute;
+            bottom: 0;
+            padding-top: 6px;
+            padding-bottom: 16px;
+            background-color: #ffffff;
+            color: #BF1122;
+            box-shadow: 0 0 0 2px #BF1122;
+            justify-content: center;
+            cursor: pointer;
+        }
+        @media (hover: hover) {
+            .complete-bar:hover {
+                background-color: #BF1122;
+                color: #FFFFFF;
+            }
+        }
+
+        /* -------- 오른쪽 아카이브 -------- */
+        .box_archive {
+            position: relative;
+            width: 20%;
+            height: 100vh;
+            background-color: #f9f9f9;
+            box-shadow: 0 0 0 2px #BF1122;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .archive-head {
+            padding-left: 8px;
+            padding-top: 2px;
+            padding-bottom: 2px;
+            background-color: #BF1122;
+            color: #FFFFFF;
+            box-shadow: 0 0 0 2px #BF1122;
+            flex: 0 0 auto;
+        }
+
+        .archive-list {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            padding: 12px;
+        }
+        .archive-list img {
+            width: 80%;
+            display: block;
+            margin: 16px auto;
+        }
+
+        /* -------- 팝업 -------- */
+        .popup {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 85%;
+            height: 100vh;
+            display: none;
+            z-index: 99999;
+            background: url("./svg/popup-bg.svg") no-repeat center;
+            background-size: cover;
+            align-items: center;
+            justify-content: center;
+            transform-origin: center;
+            animation: popIn 420ms cubic-bezier(.2,1.3,.3,1) both;
+        }
+        .popup.show { display: flex; }
+
+        .popup-complete-panel {
+            position: relative;
+            /* 화면 높이가 낮으면 박스가 넘치지 않게 높이 기준으로 제한 */
+            width: min(60%, calc((100vh - 60px) * 1.07));
+            align-items: center;
+            justify-content: center;
+        }
+        .complete-box {
+            width: 98%;
+            display: block;
+            z-index: 1;
+        }
+        .popup-snapshot {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            height: auto;
+            object-fit: contain;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .popup-right-panel {
+            width: 30%;
+            height: 100vh;
+            padding-left: 40px;
+            box-sizing: border-box;
+        }
+        .sticker-on-box { display: none; }
+        .sticker {
+            display: block;
+            margin-top: 9.26vh;           /* 1080px 기준 100px */
+            width: min(421px, 100%);
+            height: auto;
+        }
+
+        .minutes-window {
+            box-shadow: 0 0 0 2px #BF1122;
+            background: #BF1122;
+            color: #fff;
+            margin-top: 8.33vh;           /* 1080px 기준 90px */
+            margin-left: 10px;
+            margin-right: 40px;
+        }
+        .minutes-title {
+            font-weight: 400;
+            font-size: clamp(1rem, 1.25vw, 1.5rem);
+            padding-left: 12px;
+            padding-top: 5px;
+            padding-bottom: 1px;
+            box-shadow: 0 0 0 2px #BF1122;
+        }
+        .minutes-value {
+            background: #E6E6E6;
+            color: #BF1122;
+            margin-top: 8px;
+            padding: 10px 14px;
+            font-weight: 400;
+            font-size: clamp(2.4rem, calc((25.5vw - 118px) / 4.5), 5rem);  /* 1920px 기준 5rem, 창 너비에 맞춰 축소 */
+            white-space: nowrap;
+            letter-spacing: .04em;
+            box-shadow: 0 0 0 2px #BF1122;
+        }
+
+        /* -------- 버튼 -------- */
+        .btn-new {
+            margin-top: 9.26vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1.1rem, 1.25vw, 1.5rem);
+            width: clamp(104px, 7.3vw, 140px);
+            height: clamp(104px, 7.3vw, 140px);
+            box-sizing: border-box;
+            border-radius: 999px;
+            background: #E6E6E6;
+            color: #BF1122;
+            border: 2px solid #BF1122;
+            font-weight: 400;
+            text-align: center;
+            line-height: 120%;
+        }
+        @media (hover: hover) {
+            .btn-new:hover { background: #BF1122; color: #fff; }
+        }
+
+        .close {
+            position: absolute;
+            top: 14px;
+            right: 18px;
+            font-size: 28px;
+            cursor: pointer;
+            color: hsl(354, 84%, 41%);
+        }
+
+        /* -------- 애니메이션 -------- */
+        @keyframes popIn {
+            0% { transform: scale(.0); opacity: 0; }
+            70% { transform: scale(1.06); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* -------- 시계 레이어 -------- */
+        .layer:not([src]) { display: none; }
+        .hand-layer {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 90%;
+            height: 90%;
+            object-fit: contain;
+            transform-origin: 50% 50%;
+        }
+
+        /* -------- 색상 힌트 -------- */
+        .color-hint {
+            position: fixed;
+            z-index: 5000;
+            pointer-events: none;
+            top: 0;
+            left: 0;
+            animation: floaty 2s ease-in-out infinite;
+            opacity: 1;
+            transition: opacity 0.4s ease;
+        }
+        .color-hint.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        @keyframes floaty {
+            0% { transform: translateY(8px); }
+            50% { transform: translateY(0px); }
+            100% { transform: translateY(8px); }
+        }
+        .color-hint img {
+            display: block;
+            width: 220px;
+            height: auto;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+        }
+
+        /* =========================================================
+           반응형 — 태블릿 (≤1024px)
+           로고 상단 바 / 옵션 + 미리보기 2단 / 아카이브 가로 스트립
+           ========================================================= */
+        @media (max-width: 1024px) {
+            html, body {
+                overflow: visible;
+                overflow-x: clip;   /* hidden을 쓰면 sticky가 동작하지 않음 */
+            }
+
+            .container {
+                display: grid;
+                grid-template-columns: minmax(230px, 34%) 1fr;
+                grid-template-areas:
+                    "logo    logo"
+                    "options preview"
+                    "archive archive";
+                grid-template-rows: auto auto 1fr;
+                font-size: 1.25rem;
+                min-height: 100vh;
+                min-height: 100dvh;
+            }
+
+            .box-logo,
+            .box-custom-options,
+            .box-preview,
+            .box_archive {
+                width: auto;
+                height: auto;
+            }
+
+            /* 로고 */
+            .box-logo {
+                grid-area: logo;
+                display: flex;
+                align-items: center;
+                padding: 12px 16px;
+                z-index: 11;
+            }
+            #logo {
+                width: 170px !important;
+                padding: 0 !important;
+                display: block;
+            }
+
+            /* 옵션 */
+            .box-custom-options {
+                grid-area: options;
+                overflow: visible;
+            }
+            .options { padding-bottom: 22px; }
+            .opt { padding: 2px 0; }
+
+            /* 미리보기: 정사각형 스테이지 */
+            .box-preview {
+                grid-area: preview;
+                display: flex;
+                flex-direction: column;
+            }
+            .stage-wrap {
+                flex: 1 1 auto;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 24px;
+            }
+            .stage {
+                position: relative;
+                width: 100%;
+                max-width: 560px;
+                aspect-ratio: 1 / 1;
+            }
+            .complete-bar {
+                position: relative;
+                box-sizing: border-box;
+                padding-top: 10px;
+                padding-bottom: 14px;
+            }
+
+            /* 아카이브: 가로 스크롤 */
+            .box_archive {
+                grid-area: archive;
+                min-height: 0;
+            }
+            .archive-list {
+                display: flex;
+                flex-direction: row;
+                gap: 12px;
+                overflow-x: auto;
+                overflow-y: hidden;
+                min-height: 120px;
+                padding: 14px 12px;
+                -webkit-overflow-scrolling: touch;
+            }
+            .archive-list img {
+                flex: 0 0 auto;
+                width: 120px !important;
+                height: 120px;
+                object-fit: contain;
+                margin: 0 !important;
+            }
+
+            /* 팝업: 세로 배치 + 스크롤
+               PC 레이아웃이 끝나는 1024px부터 스티커가 시계 박스 모서리에 붙음 */
+            .popup {
+                /* 시계 박스 폭: 화면 너비·높이 모두에 맞춰 조절 */
+                --boxw: min(78vw, 560px, calc(50svh * 1.07));
+                width: 100%;
+                height: 100%;
+                flex-direction: column;
+                justify-content: flex-start;
+                overflow-y: auto;
+                /* 박스 위로 튀어나오는 스티커 높이만큼 위 여백 확보 */
+                padding: calc(var(--boxw) * 0.2 + 16px) 0 40px;
+                box-sizing: border-box;
+                -webkit-overflow-scrolling: touch;
+            }
+            .popup-complete-panel {
+                flex: 0 0 auto;
+                width: var(--boxw);
+            }
+            .complete-box { width: 100%; }
+            .popup-right-panel {
+                flex: 0 0 auto;
+                width: var(--boxw);
+                height: auto;
+                padding: 0;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .sticker { display: none; }
+            .sticker-on-box {
+                display: block;
+                position: absolute;
+                z-index: 3;
+                width: 64%;
+                height: auto;
+                top: -21%;
+                right: -6%;
+                transform: rotate(4deg);
+                filter: drop-shadow(0 3px 6px rgba(0,0,0,0.12));
+                pointer-events: none;
+            }
+            .minutes-window {
+                width: 82%;
+                align-self: center;
+                margin: 24px 0 0;
+            }
+            .minutes-title {
+                font-size: clamp(0.9rem, 2.2vw, 1.15rem);
+                padding: 3px 10px 2px;
+            }
+            .minutes-value {
+                font-size: clamp(1.6rem, 5.2vw, 2.8rem);
+                text-align: center;
+                margin-top: 4px;
+                padding: 4px 10px;
+            }
+            .btn-new {
+                margin-top: 24px;
+                width: 116px;
+                height: 116px;
+                font-size: 1.2rem;
+            }
+        }
+
+        /* =========================================================
+           반응형 — 모바일 (≤640px)
+           미리보기를 상단에 고정(sticky)해 옵션을 고르면서 시계를 볼 수 있게
+           ========================================================= */
+        @media (max-width: 640px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-areas:
+                    "logo"
+                    "preview"
+                    "options"
+                    "archive";
+                grid-template-rows: auto auto auto 1fr;
+                font-size: 1.1rem;
+                padding-bottom: calc(56px + env(safe-area-inset-bottom));
+            }
+
+            .box-logo { padding: 10px 14px; }
+            #logo { width: 128px !important; }
+
+            /* 시계 미리보기 상단 고정 */
+            .box-preview {
+                position: sticky;
+                top: 0;
+                z-index: 20;
+            }
+            #btn-back, #btn-forward {
+                padding-top: 6px;
+                padding-bottom: 6px;
+            }
+            .stage-wrap { padding: 12px; }
+            .stage {
+                width: min(100%, 40vh);
+                width: min(100%, 40svh);
+            }
+
+            /* complete! 버튼은 화면 하단 고정 */
+            .complete-bar {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                width: auto;
+                z-index: 30;
+                padding-top: 12px;
+                padding-bottom: calc(14px + env(safe-area-inset-bottom));
+            }
+
+            /* 옵션: 가로로 흐르게 해서 세로 길이 줄이기 */
+            .box-custom-options { z-index: 10; }
+            .title { padding-top: 6px; padding-bottom: 6px; }
+            .options {
+                flex-direction: row;
+                flex-wrap: wrap;
+                column-gap: 18px;
+                row-gap: 2px;
+                padding: 10px 12px 18px;
+            }
+            .opt { padding: 6px 0; }   /* 터치 영역 확보 */
+
+            /* 팔레트 */
+            #color-palette { grid-template-columns: repeat(5, 56px); }
+            #color-palette button { width: 56px; height: 48px; }
+
+            .archive-list img {
+                width: 96px !important;
+                height: 96px;
+            }
+
+            /* 힌트 */
+            .color-hint img { width: 150px; }
+
+            /* 팝업: 박스를 조금 더 크게, 높이 기준 제한은 더 타이트하게
+               (minutes + create new!까지 스크롤 없이 한 화면에) */
+            .popup {
+                --boxw: min(84vw, calc(44svh * 1.07));
+                padding: max(72px, 10.5svh) 0 20px;
+            }
+            .minutes-window { margin-top: 20px; }
+            .minutes-value { font-size: clamp(1.6rem, 7.5vw, 2rem); }
+            .btn-new {
+                margin-top: 20px;
+                width: 100px;
+                height: 100px;
+                font-size: 1.1rem;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+  
+<div class="container">
+    <header class="box-logo">
+        <img id="logo" src="./svg/logo.svg" style="width: 80%; padding: 16px">
+    </header>
+
+    <aside class="box-custom-options">
+        <nav class="group" data-group="dial">
+            <div class="option-head">
+                <div class="title">dials</div>
+                <div class="color-swatch"></div>
+            </div>
+            <div class="options">
+                <span class="opt" data-value="circle">circle</span>
+                <span class="opt" data-value="square">square</span>
+                <span class="opt" data-value="house">house</span>
+                <span class="opt" data-value="convex square">convex square</span>
+            </div>
+        </nav>
+        <nav class="group" data-group="numerals">
+            <div class="option-head">
+                <div class="title">numerals</div>
+                <div class="color-swatch"></div>
+            </div>
+            <div class="options">
+                <span class="opt" data-value="numbers">numbers</span>
+                <span class="opt" data-value="two dots">two dots</span>
+                <span class="opt" data-value="small dots">small dots</span>
+                <span class="opt" data-value="big dots">big dots</span>
+                <span class="opt" data-value="small sectors">small sectors</span>
+                <span class="opt" data-value="big sectors">big sectors</span>
+                <span class="opt" data-value="small squares">small squares</span>
+                <span class="opt" data-value="big squares">big squares</span>
+            </div>
+        </nav>
+        <nav class="group" data-group="marks">
+            <div class="option-head">
+                <div class="title">marks</div>
+                <div class="color-swatch"></div>
+            </div>
+            <div class="options">
+                <span class="opt" data-value="line">line</span>
+                <span class="opt" data-value="small dots">small dots</span>
+                <span class="opt" data-value="big dots">big dots</span>
+            </div>
+        </nav>
+        <nav class="group" data-group="hands">
+            <div class="option-head">
+                <div class="title">hands</div>
+                <div class="color-swatch"></div>
+            </div>
+            <div class="options">
+                <span class="opt" data-value="circle">circle</span>
+                <span class="opt" data-value="square">square</span>
+                <span class="opt" data-value="straight">straight</span>
+                <span class="opt" data-value="arrow">arrow</span>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="box-preview">
+        <div class="menu-back-forward">
+            <button id="btn-back" title="뒤로가기">↩︎ back</button>
+            <button id="btn-forward" title="앞으로가기">↪︎ forward</button>
+        </div>  
+        <div class="stage-wrap">
+            <div class="stage" id="stage">
+                <!-- 시계 레이어 -->
+                <img id="L-dial" class="layer" alt="dial layer" />
+                <img id="L-numerals" class="layer" alt="numerals layer" />
+                <img id="L-marks" class="layer" alt="marks layer" />
+
+                <!-- hands를 세 장으로 쪼갠 버전 -->
+                <img id="L-hour"   class="layer hand-layer" alt="hour hand layer" />
+                <img id="L-minute" class="layer hand-layer" alt="minute hand layer" />
+                <img id="L-second" class="layer hand-layer" alt="second hand layer" />
+            </div>
+        </div>
+        <div class="complete-bar" id="btn-complete">
+            <button class="complete-btn">complete!</button>
+        </div>
+    </main>
+
+    <aside class="box_archive">
+        <div class="archive-head" aria-hidden="true">&nbsp;archive preview</div>
+        <div class="archive-list" id="archiveList"></div>
+    </aside>
+
+</div>
+
+<div id="color-palette" hidden>
+  <button data-color="#C41224"></button>
+  <button data-color="#EF4B3E"></button>
+  <button data-color="#7ED0FF"></button>
+  <button data-color="#D8F2C9"></button>
+  <button data-color="#E4B5F1"></button>
+  <button data-color="#5A1E22"></button>
+  <button data-color="#E2C7CF"></button>
+  <button data-color="#F7F0A4"></button>
+  <button data-color="#FFFFFF"></button>
+  <button data-color="#EBEBEB"></button>
+</div>
+
+<div id="popup" class="popup">
+    <div class="popup-complete-panel">
+      <img src="./svg/complete _box.svg" class="complete-box">
+      <img id="popupSnapshot" class="popup-snapshot" alt="">
+      <!-- 모바일 전용: 시계 박스 모서리에 붙는 스티커 -->
+      <img src="./svg/sticker.svg" class="sticker-on-box" alt="" aria-hidden="true">
+    </div>
+
+    <div class="popup-right-panel">
+      <img src="./svg/sticker.svg" class="sticker">
+      <div class="minutes-window">
+        <div class="minutes-title">your minutes are…</div>
+        <div id="minutesNow" class="minutes-value">00:00:00</div>
+      </div>
+      <button id="btn-create-new" class="btn-new">create<br>new!</button>
+    </div>
+</div>
+
+<div id="color-hint" class="color-hint">
+  <img src="./svg/color-hint.svg" alt="try changing the colors!">
+</div>
+
+<audio id="tick-sound" src="audio/clock.mp3" loop></audio>
+
+</body>
+</html>
+
+<script>
+/* 시계 레이어 SVG 원본 (svg 폴더의 dial_/numerals_/marks_/hands_ 파일과 동일) */
+window.EMBEDDED_SVGS = {"./svg/dial_circle.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M400 750C593.3 750 750 593.3 750 400C750 206.7 593.3 50 400 50C206.7 50 50 206.7 50 400C50 593.3 206.7 750 400 750Z\" fill=\"white\"/>\n<\/svg>\n","./svg/dial_convex square.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M123.907 694.845C299.205 768.385 500.795 768.385 676.093 694.845C684.555 691.289 691.289 684.555 694.845 676.093C768.385 500.795 768.385 299.205 694.845 123.907C691.289 115.445 684.555 108.711 676.093 105.155C500.795 31.6149 299.205 31.6149 123.907 105.155C115.445 108.711 108.711 115.445 105.155 123.907C31.6149 299.205 31.6149 500.795 105.155 676.093C108.711 684.555 115.445 691.289 123.907 694.845Z\" fill=\"white\"/>\n<\/svg>\n","./svg/dial_house.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M798.369 365.122L406.412 18.4289C402.752 15.1904 397.278 15.1904 393.618 18.4289L1.66119 365.122C-1.70846 368.104 0.395421 373.673 4.85978 373.673H112.381V696H687.615V373.673H795.136C799.618 373.673 801.705 368.087 798.335 365.122H798.369Z\" fill=\"white\"/>\n<\/svg>\n","./svg/dial_square.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M674.438 75H125.562C97.6373 75 75 97.6373 75 125.562V674.438C75 702.363 97.6373 725 125.562 725H674.438C702.363 725 725 702.363 725 674.438V125.562C725 97.6373 702.363 75 674.438 75Z\" fill=\"white\"/>\n<\/svg>\n","./svg/hands_arrow.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M402.294 403.021C401.394 404.59 399.381 405.113 397.827 404.214L298.489 346.938C296.918 346.039 296.395 344.029 297.294 342.477C298.194 340.924 300.206 340.385 301.761 341.284L401.099 398.56C402.67 399.459 403.193 401.469 402.294 403.021Z\" fill=\"white\"/>\n<path d=\"M325.466 339.715C325.041 340.434 324.354 341.006 323.487 341.235L304.149 346.415L309.335 365.73C309.81 367.479 308.763 369.26 307.029 369.734C305.278 370.208 303.495 369.162 303.02 367.43L296.984 344.944C296.542 343.277 297.622 341.398 299.29 340.941L321.802 334.911C323.552 334.437 325.336 335.483 325.81 337.215C326.039 338.081 325.908 338.963 325.483 339.699L325.466 339.715Z\" fill=\"white\"/>\n<path d=\"M399.463 404.95C397.663 404.95 396.191 403.479 396.191 401.681V193.885C396.191 192.087 397.663 190.616 399.463 190.616C401.263 190.616 402.735 192.087 402.735 193.885V401.681C402.735 403.479 401.263 404.95 399.463 404.95Z\" fill=\"white\"/>\n<path d=\"M415.921 213.609C415.087 213.609 414.253 213.282 413.615 212.644L399.447 198.493L385.279 212.644C384.003 213.919 381.925 213.919 380.649 212.644C379.373 211.37 379.373 209.294 380.649 208.02L397.124 191.564C398.351 190.338 400.527 190.338 401.754 191.564L418.228 208.02C419.504 209.294 419.504 211.37 418.228 212.644C417.59 213.282 416.756 213.609 415.921 213.609Z\" fill=\"white\"/>\n<path d=\"M400.533 400.065C399.895 399.426 398.859 399.424 398.219 400.062C397.579 400.699 397.578 401.733 398.216 402.373L608.382 612.959C609.02 613.598 610.056 613.6 610.696 612.963C611.336 612.325 611.338 611.291 610.7 610.652L400.533 400.065Z\" fill=\"white\"/>\n<circle cx=\"399.742\" cy=\"399.793\" r=\"10\" fill=\"white\"/>\n<\/svg>\n","./svg/hands_arrow_hour.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<circle cx=\"400\" cy=\"400.311\" r=\"10\" fill=\"white\"/>\n<path d=\"M400.024 400C398.224 400 396.752 399.202 396.752 398.227V285.531C396.752 284.556 398.224 283.758 400.024 283.758C401.824 283.758 403.296 284.556 403.296 285.531V398.227C403.296 399.202 401.824 400 400.024 400Z\" fill=\"white\"/>\n<path d=\"M416.482 301.369C415.648 301.369 414.814 301.042 414.176 300.405L400.008 286.253L385.84 300.405C384.564 301.679 382.486 301.679 381.21 300.405C379.934 299.13 379.934 297.055 381.21 295.78L397.685 279.324C398.912 278.099 401.088 278.099 402.315 279.324L418.789 295.78C420.065 297.055 420.065 299.13 418.789 300.405C418.151 301.042 417.317 301.369 416.482 301.369Z\" fill=\"white\"/>\n<\/svg>\n","./svg/hands_arrow_minute.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M400.024 400C398.225 400 396.752 398.529 396.752 396.732V188.935C396.752 187.137 398.225 185.667 400.024 185.667C401.824 185.667 403.296 187.137 403.296 188.935V396.732C403.296 398.529 401.824 400 400.024 400Z\" fill=\"white\"/>\n<path d=\"M416.483 208.659C415.649 208.659 414.814 208.332 414.176 207.695L400.008 193.543L385.84 207.695C384.564 208.969 382.487 208.969 381.21 207.695C379.934 206.42 379.934 204.345 381.21 203.07L397.685 186.615C398.912 185.389 401.088 185.389 402.315 186.615L418.79 203.07C420.066 204.345 420.066 206.42 418.79 207.695C418.152 208.332 417.317 208.659 416.483 208.659Z\" fill=\"white\"/>\n<\/svg>\n","./svg/hands_circle.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M417.103 343.772C417.103 335.267 410.957 328.174 402.854 326.7V180.161C402.854 178.453 401.457 177.057 399.75 177.057C398.043 177.057 396.646 178.453 396.646 180.161V326.685C388.528 328.143 382.351 335.236 382.351 343.772C382.351 352.308 388.528 359.401 396.646 360.86V400.684C396.646 402.391 398.043 403.788 399.75 403.788C401.457 403.788 402.854 402.391 402.854 400.684V360.86C410.941 359.385 417.103 352.292 417.103 343.788V343.772ZM399.735 354.931C393.573 354.931 388.575 349.918 388.575 343.772C388.575 337.626 393.588 332.613 399.735 332.613C405.881 332.613 410.895 337.626 410.895 343.772C410.895 349.918 405.881 354.931 399.735 354.931Z\" fill=\"white\"/>\n<path d=\"M359.13 357.181C351.758 352.929 342.523 354.714 337.199 360.999L289.268 333.327C287.778 332.473 285.885 332.986 285.031 334.46C284.177 335.934 284.69 337.843 286.164 338.697L334.094 366.369C331.316 374.114 334.374 383.006 341.746 387.274C349.119 391.542 358.354 389.742 363.678 383.457L398.167 403.369C399.657 404.222 401.551 403.71 402.404 402.236C403.258 400.761 402.746 398.852 401.271 397.999L366.783 378.087C369.561 370.342 366.503 361.449 359.13 357.181ZM360.124 377.807C357.051 383.146 350.206 384.977 344.866 381.889C339.527 378.816 337.695 371.972 340.784 366.633C343.857 361.294 350.702 359.463 356.042 362.551C361.381 365.624 363.213 372.468 360.124 377.807Z\" fill=\"white\"/>\n<path d=\"M400.712 399.393C400.107 398.786 399.124 398.784 398.517 399.39C397.91 399.995 397.908 400.977 398.513 401.584L597.906 601.586C598.511 602.193 599.494 602.194 600.101 601.589C600.708 600.984 600.71 600.001 600.105 599.394L400.712 399.393Z\" fill=\"white\"/>\n<circle cx=\"399.528\" cy=\"400.421\" r=\"10\" fill=\"white\"/>\n<\/svg>\n","./svg/hands_circle_hour.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M417.377 338.865C417.374 330.354 411.21 323.249 403.105 321.781L403.105 266.436C403.099 264.719 401.708 263.335 400.005 263.333C398.301 263.331 396.904 264.729 396.902 266.433L396.902 321.777C388.806 323.244 382.634 330.338 382.624 338.857C382.614 347.376 388.791 354.474 396.896 355.942L396.896 395.766C396.902 397.483 398.292 398.867 399.996 398.869C401.7 398.871 403.097 397.473 403.099 395.769L403.099 355.945C411.195 354.479 417.367 347.384 417.377 338.865ZM400.011 350.039C393.851 350.047 388.843 345.034 388.848 338.866C388.839 332.706 393.851 327.697 400.019 327.703C406.179 327.695 411.187 332.707 411.182 338.875C411.191 345.036 406.179 350.044 400.011 350.039Z\" fill=\"white\"/>\n<circle cx=\"400\" cy=\"400\" r=\"10\" fill=\"white\"/>\n<\/svg>\n","./svg/hands_circle_minute.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M417.376 339.984C417.376 331.48 411.23 324.387 403.127 322.913V176.373C403.127 174.666 401.73 173.269 400.023 173.269C398.316 173.269 396.919 174.666 396.919 176.373V322.897C388.801 324.356 382.624 331.448 382.624 339.984C382.624 348.52 388.801 355.613 396.919 357.072V396.896C396.919 398.603 398.316 400 400.023 400C401.73 400 403.127 398.603 403.127 396.896V357.072C411.214 355.598 417.376 348.505 417.376 340V339.984ZM400.008 351.143C393.846 351.143 388.848 346.13 388.848 339.984C388.848 333.839 393.861 328.826 400.008 328.826C406.154 328.826 411.167 333.839 411.167 339.984C411.167 346.13 406.154 351.143 400.008 351.143Z\" fill=\"white\"/>\n<\/svg>\n","./svg/hands_second.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M401.538 116.034C401.538 115.176 400.843 114.481 399.986 114.481C399.129 114.481 398.434 115.176 398.434 116.034L398.461 398.448C398.461 399.305 399.156 400 400.013 400C400.871 400 401.565 399.305 401.565 398.448L401.538 116.034Z\" fill=\"white\"/>\n<\/svg>\n","./svg/hands_square.svg":"<svg width=\"800\" height=\"799\" viewBox=\"0 0 800 799\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M400.288 398.048C399.685 397.444 398.708 397.442 398.104 398.044C397.499 398.646 397.498 399.624 398.1 400.228L596.496 599.229C597.098 599.833 598.076 599.835 598.68 599.233C599.284 598.631 599.286 597.653 598.684 597.049L400.288 398.048Z\" fill=\"white\"/>\n<path d=\"M360.706 352.928C359.995 352.511 359.146 352.403 358.358 352.619L335.285 358.796L289.401 332.312C287.919 331.463 286.035 331.972 285.185 333.439C284.336 334.906 284.846 336.806 286.313 337.655L332.212 364.154L338.389 387.225C338.606 388.013 339.115 388.692 339.826 389.094C340.536 389.495 341.385 389.619 342.173 389.403L365.246 383.226L397.771 402.004C399.254 402.853 401.138 402.343 401.987 400.876C402.837 399.409 402.327 397.51 400.86 396.661L368.335 377.883L362.157 354.812C361.941 354.024 361.432 353.345 360.721 352.943L360.706 352.928ZM361.895 377.728L343.563 382.639L338.652 364.309L356.984 359.398L361.895 377.728Z\" fill=\"white\"/>\n<path d=\"M420.195 342.705C420.195 341.886 419.871 341.099 419.284 340.528L402.404 323.649V179.912C402.404 178.213 401.014 176.823 399.315 176.823C397.616 176.823 396.226 178.213 396.226 179.912V323.634L379.346 340.512C378.759 341.099 378.435 341.871 378.435 342.689C378.435 343.508 378.759 344.295 379.346 344.867L396.226 361.745V399.301C396.226 401 397.616 402.39 399.315 402.39C401.014 402.39 402.404 401 402.404 399.301V361.745L419.284 344.867C419.871 344.28 420.195 343.508 420.195 342.689V342.705ZM399.315 356.124L385.894 342.705L399.315 329.286L412.736 342.705L399.315 356.124Z\" fill=\"white\"/>\n<circle cx=\"399.484\" cy=\"399.685\" r=\"10\" fill=\"white\"/>\n<\/svg>\n","./svg/hands_square_hour.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M420.997 339.15C421.003 338.326 420.672 337.536 420.091 336.962L403.205 320.069L403.199 267.091C403.193 265.382 401.81 264.005 400.114 264.003C398.419 264.001 397.029 265.392 397.027 267.087L397.028 320.087L380.137 336.972C379.563 337.553 379.229 338.334 379.237 339.15C379.244 339.966 379.562 340.763 380.143 341.337L397.029 358.231L397.029 395.787C397.035 397.496 398.418 398.873 400.113 398.875C401.809 398.877 403.199 397.486 403.201 395.79L403.2 358.234L420.092 341.349C420.666 340.768 420.999 339.987 420.992 339.171L420.997 339.15ZM400.114 352.58L386.695 339.159L400.114 325.741L413.533 339.162L400.114 352.58Z\" fill=\"white\"/>\n<circle cx=\"400\" cy=\"400.437\" r=\"10\" fill=\"white\"/>\n<\/svg>\n","./svg/hands_square_minute.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M420.88 340.315C420.88 339.497 420.555 338.709 419.969 338.138L403.088 321.26V177.522C403.088 175.823 401.699 174.434 400 174.434C398.301 174.434 396.911 175.823 396.911 177.522V321.244L380.031 338.123C379.444 338.709 379.12 339.482 379.12 340.3C379.12 341.118 379.444 341.906 380.031 342.477L396.911 359.356V396.912C396.911 398.61 398.301 400 400 400C401.699 400 403.088 398.61 403.088 396.912V359.356L419.969 342.477C420.555 341.891 420.88 341.118 420.88 340.3V340.315ZM400 353.735L386.579 340.315L400 326.896L413.42 340.315L400 353.735Z\" fill=\"white\"/>\n<\/svg>\n","./svg/hands_straight.svg":"<svg width=\"800\" height=\"801\" viewBox=\"0 0 800 801\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M302.62 327.223L288.024 353.311C287.164 354.859 287.68 356.826 289.164 357.713C290.649 358.6 292.571 358.068 293.431 356.536L299.166 346.281L398.153 405.245C399.653 406.132 401.559 405.6 402.419 404.068C403.278 402.536 402.763 400.553 401.278 399.666L302.292 340.703L308.027 330.448C308.887 328.9 308.371 326.933 306.886 326.046C305.402 325.16 303.48 325.692 302.62 327.223Z\" fill=\"white\"/>\n<path d=\"M414.327 188.835H385.119C383.4 188.835 381.994 190.287 381.994 192.06C381.994 193.834 383.4 195.285 385.119 195.285H396.59V402.472C396.59 404.245 397.996 405.696 399.716 405.696C401.435 405.696 402.841 404.245 402.841 402.472V195.285H414.312C416.031 195.285 417.437 193.834 417.437 192.06C417.437 190.287 416.031 188.835 414.312 188.835H414.327Z\" fill=\"white\"/>\n<path d=\"M400.745 401.138C400.136 400.507 399.146 400.506 398.535 401.135C397.924 401.763 397.922 402.784 398.532 403.415L599.29 611.194C599.9 611.824 600.889 611.826 601.5 611.197C602.112 610.568 602.113 609.548 601.504 608.917L400.745 401.138Z\" fill=\"white\"/>\n<circle cx=\"399.611\" cy=\"400.585\" r=\"10\" fill=\"white\"/>\n<\/svg>\n","./svg/hands_straight_hour.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<circle cx=\"400\" cy=\"399.874\" r=\"10\" fill=\"white\"/>\n<path d=\"M413.638 274.623C415.585 274.623 417.162 276.201 417.163 278.147C417.163 280.094 415.585 281.673 413.638 281.673H403.526V399.874H396.476V281.673H386.363C384.416 281.673 382.837 280.094 382.837 278.147C382.838 276.201 384.416 274.623 386.363 274.623H413.638Z\" fill=\"white\"/>\n<\/svg>\n","./svg/hands_straight_minute.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M414.612 183.139H385.404C383.685 183.139 382.278 184.59 382.278 186.364C382.278 188.137 383.685 189.588 385.404 189.588H396.875V396.775C396.875 398.549 398.281 400 400 400C401.719 400 403.126 398.549 403.126 396.775V189.588H414.597C416.316 189.588 417.722 188.137 417.722 186.364C417.722 184.59 416.316 183.139 414.597 183.139H414.612Z\" fill=\"white\"/>\n<\/svg>\n","./svg/marks_big dots.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M399.055 254.81C396.872 254.81 395.115 256.59 395.115 258.75C395.115 260.91 396.895 262.69 399.055 262.69C401.215 262.69 402.996 260.91 402.996 258.75C402.996 256.59 401.215 254.81 399.055 254.81Z\" fill=\"white\"/>\n<path d=\"M384.648 263.473C385.692 263.354 386.642 262.856 387.306 262.025C387.971 261.194 388.279 260.174 388.161 259.129C388.042 258.085 387.544 257.136 386.713 256.471C386.001 255.901 385.146 255.593 384.244 255.593C384.102 255.593 383.96 255.593 383.817 255.593C382.773 255.711 381.823 256.21 381.159 257.041C380.494 257.871 380.186 258.892 380.304 259.936C380.423 260.981 380.921 261.93 381.752 262.595C382.559 263.259 383.604 263.568 384.648 263.449V263.473Z\" fill=\"white\"/>\n<path d=\"M366.253 259.723C365.683 260.601 365.469 261.669 365.707 262.69C366.158 264.826 368.27 266.203 370.383 265.728C372.519 265.277 373.872 263.165 373.421 261.052C373.017 259.201 371.38 257.919 369.552 257.919C369.291 257.919 369.006 257.943 368.721 258.014C367.701 258.228 366.799 258.845 366.229 259.723H366.253Z\" fill=\"white\"/>\n<path d=\"M351.465 266.939C351.797 267.936 352.485 268.766 353.435 269.241C354.384 269.716 355.429 269.811 356.449 269.478C357.446 269.146 358.277 268.458 358.752 267.508C359.226 266.559 359.321 265.491 358.989 264.494C358.443 262.832 356.9 261.764 355.239 261.764C354.835 261.764 354.432 261.835 354.028 261.954C351.963 262.619 350.824 264.85 351.488 266.939H351.465Z\" fill=\"white\"/>\n<path d=\"M342.967 274.629C344.961 273.751 345.863 271.401 344.961 269.407C344.297 267.935 342.872 267.057 341.353 267.057C340.807 267.057 340.261 267.176 339.763 267.389C337.769 268.268 336.867 270.618 337.769 272.611C338.647 274.605 340.997 275.483 342.991 274.605L342.967 274.629Z\" fill=\"white\"/>\n<path d=\"M330.103 281.204C331.978 280.112 332.642 277.691 331.551 275.816C330.815 274.558 329.486 273.846 328.133 273.846C327.468 273.846 326.78 274.012 326.163 274.368C324.287 275.46 323.623 277.881 324.715 279.756C325.807 281.631 328.228 282.296 330.103 281.204Z\" fill=\"white\"/>\n<path d=\"M318.852 283.553C318.235 282.699 317.309 282.129 316.265 281.963C316.051 281.939 315.837 281.916 315.647 281.916C314.817 281.916 314.01 282.177 313.345 282.675C311.589 283.957 311.185 286.425 312.467 288.182C313.749 289.938 316.217 290.342 317.973 289.06C319.73 287.778 320.134 285.31 318.852 283.553Z\" fill=\"white\"/>\n<path d=\"M301.192 297.843C302.64 299.457 305.156 299.576 306.77 298.128C307.553 297.416 308.028 296.443 308.076 295.398C308.123 294.354 307.767 293.333 307.079 292.55C306.367 291.767 305.417 291.316 304.349 291.245C304.278 291.245 304.207 291.245 304.136 291.245C303.162 291.245 302.237 291.601 301.501 292.265C299.887 293.713 299.744 296.229 301.216 297.843H301.192Z\" fill=\"white\"/>\n<path d=\"M289.68 305.913C289.728 306.957 290.203 307.931 290.986 308.643C291.769 309.355 292.814 309.711 293.834 309.663C294.879 309.616 295.852 309.141 296.564 308.358C298.012 306.744 297.893 304.228 296.279 302.78C295.543 302.115 294.617 301.759 293.644 301.759C293.573 301.759 293.502 301.759 293.431 301.759C292.386 301.807 291.413 302.281 290.701 303.065C289.989 303.848 289.633 304.869 289.68 305.913Z\" fill=\"white\"/>\n<path d=\"M284.886 321.151C285.931 320.985 286.832 320.415 287.473 319.56C288.09 318.706 288.352 317.662 288.185 316.617C288.019 315.573 287.45 314.671 286.595 314.03C285.907 313.532 285.1 313.271 284.293 313.271C284.079 313.271 283.865 313.27 283.676 313.318C282.631 313.484 281.729 314.054 281.088 314.908C279.807 316.665 280.21 319.157 281.967 320.415C282.821 321.032 283.865 321.293 284.91 321.127L284.886 321.151Z\" fill=\"white\"/>\n<path d=\"M279.996 328.699C279.711 327.679 279.07 326.824 278.145 326.302C277.528 325.946 276.839 325.78 276.175 325.78C274.798 325.78 273.469 326.492 272.757 327.75C272.234 328.652 272.092 329.72 272.353 330.741C272.638 331.761 273.279 332.616 274.205 333.138C275.13 333.66 276.175 333.803 277.195 333.541C278.216 333.257 279.07 332.616 279.593 331.69C280.115 330.788 280.257 329.72 279.996 328.699Z\" fill=\"white\"/>\n<path d=\"M271.048 339.333C270.526 339.095 269.98 339 269.457 339C267.938 339 266.49 339.879 265.85 341.35C265.422 342.324 265.399 343.392 265.778 344.365C266.158 345.362 266.894 346.121 267.867 346.548C268.84 346.976 269.908 346.999 270.882 346.62C271.878 346.24 272.638 345.504 273.065 344.531C273.493 343.558 273.516 342.49 273.136 341.516C272.757 340.52 272.021 339.76 271.048 339.333Z\" fill=\"white\"/>\n<path d=\"M260.367 355.592C260.034 356.589 260.129 357.657 260.604 358.606C261.079 359.556 261.909 360.244 262.906 360.576C263.903 360.909 264.971 360.814 265.921 360.339C266.87 359.864 267.559 359.034 267.891 358.037C268.223 357.04 268.128 355.972 267.654 355.022C267.179 354.073 266.348 353.384 265.351 353.052C264.948 352.91 264.544 352.862 264.141 352.862C262.479 352.862 260.913 353.93 260.39 355.592H260.367Z\" fill=\"white\"/>\n<path d=\"M261.103 367.294C260.818 367.247 260.557 367.199 260.272 367.199C259.513 367.199 258.777 367.413 258.136 367.84C257.258 368.41 256.641 369.288 256.427 370.332C255.976 372.469 257.329 374.557 259.465 375.008C261.601 375.483 263.69 374.083 264.141 371.97C264.592 369.834 263.239 367.745 261.103 367.294Z\" fill=\"white\"/>\n<path d=\"M258.349 381.892C258.207 381.892 258.064 381.892 257.922 381.892C257.02 381.892 256.142 382.2 255.453 382.77C254.622 383.434 254.124 384.384 254.005 385.428C253.792 387.588 255.358 389.535 257.518 389.772C258.563 389.867 259.607 389.582 260.414 388.917C261.245 388.253 261.743 387.303 261.862 386.259C262.076 384.099 260.509 382.153 258.349 381.915V381.892Z\" fill=\"white\"/>\n<path d=\"M257.162 396.703C254.979 396.703 253.222 398.483 253.222 400.643C253.222 402.803 255.002 404.583 257.162 404.583C259.322 404.583 261.102 402.803 261.102 400.643C261.102 398.483 259.322 396.703 257.162 396.703Z\" fill=\"white\"/>\n<path d=\"M258.349 419.418C259.393 419.299 260.343 418.801 261.007 417.97C261.672 417.139 261.981 416.119 261.862 415.074C261.743 414.03 261.245 413.08 260.414 412.416C259.702 411.846 258.848 411.538 257.946 411.538C257.803 411.538 257.661 411.538 257.518 411.538C256.474 411.656 255.524 412.155 254.86 412.985C254.195 413.816 253.887 414.837 254.005 415.881C254.124 416.926 254.622 417.875 255.453 418.54C256.26 419.204 257.305 419.513 258.349 419.394V419.418Z\" fill=\"white\"/>\n<path d=\"M264.14 429.34C263.737 427.488 262.099 426.207 260.271 426.207C260.01 426.207 259.726 426.23 259.441 426.301C257.305 426.752 255.952 428.865 256.403 430.977C256.616 431.998 257.233 432.9 258.111 433.47C258.99 434.039 260.034 434.253 261.078 434.016C263.215 433.565 264.568 431.452 264.117 429.34H264.14Z\" fill=\"white\"/>\n<path d=\"M265.328 448.257C266.325 447.925 267.156 447.237 267.63 446.287C268.105 445.338 268.2 444.27 267.868 443.273C267.203 441.208 264.972 440.068 262.883 440.733C260.818 441.398 259.679 443.629 260.343 445.718C261.008 447.783 263.263 448.922 265.328 448.257Z\" fill=\"white\"/>\n<path d=\"M273.042 456.754C272.163 454.76 269.814 453.858 267.82 454.76C265.826 455.638 264.924 457.988 265.826 459.982C266.253 460.955 267.036 461.691 268.01 462.071C268.983 462.45 270.075 462.427 271.024 461.999C273.018 461.121 273.92 458.771 273.018 456.778L273.042 456.754Z\" fill=\"white\"/>\n<path d=\"M278.145 475.031C280.02 473.939 280.685 471.518 279.593 469.643C278.857 468.385 277.528 467.673 276.175 467.673C275.51 467.673 274.822 467.839 274.205 468.195C272.33 469.287 271.665 471.708 272.757 473.583C273.849 475.458 276.27 476.123 278.145 475.031Z\" fill=\"white\"/>\n<path d=\"M287.473 481.748C286.192 479.992 283.723 479.588 281.967 480.87C280.21 482.152 279.807 484.62 281.088 486.377C281.706 487.231 282.631 487.801 283.676 487.967C284.72 488.133 285.764 487.872 286.619 487.255C288.375 485.973 288.779 483.505 287.497 481.748H287.473Z\" fill=\"white\"/>\n<path d=\"M290.677 498.245C292.125 499.859 294.641 500.001 296.255 498.53C297.869 497.082 298.011 494.566 296.54 492.952C295.092 491.338 292.576 491.195 290.962 492.667C289.348 494.115 289.205 496.631 290.677 498.245Z\" fill=\"white\"/>\n<path d=\"M300.172 506.315C300.219 507.359 300.694 508.332 301.478 509.045C303.092 510.492 305.584 510.374 307.055 508.76C307.768 507.976 308.124 506.956 308.052 505.911C307.981 504.867 307.53 503.894 306.747 503.182C306.011 502.517 305.085 502.161 304.112 502.161C304.041 502.161 303.97 502.161 303.899 502.161C302.854 502.209 301.881 502.683 301.169 503.467C300.457 504.25 300.101 505.271 300.172 506.315Z\" fill=\"white\"/>\n<path d=\"M316.289 519.346C317.333 519.18 318.235 518.61 318.876 517.755C320.158 515.999 319.754 513.507 317.998 512.249C317.309 511.75 316.502 511.489 315.695 511.489C315.482 511.489 315.268 511.489 315.078 511.537C314.034 511.703 313.132 512.272 312.491 513.127C311.874 513.981 311.613 515.026 311.779 516.07C311.945 517.115 312.515 518.017 313.369 518.657C314.224 519.275 315.268 519.536 316.313 519.37L316.289 519.346Z\" fill=\"white\"/>\n<path d=\"M324.691 521.578C324.169 522.48 324.026 523.548 324.287 524.568C324.572 525.589 325.213 526.443 326.139 526.966C328.037 528.057 330.435 527.393 331.527 525.518C332.049 524.616 332.191 523.548 331.93 522.527C331.669 521.506 331.004 520.652 330.079 520.13C329.462 519.774 328.797 519.607 328.109 519.607C327.776 519.607 327.42 519.655 327.088 519.75C326.067 520.035 325.213 520.676 324.691 521.601V521.578Z\" fill=\"white\"/>\n<path d=\"M344.962 531.902C345.84 529.908 344.962 527.582 342.968 526.68C342.446 526.443 341.9 526.348 341.378 526.348C339.859 526.348 338.411 527.226 337.77 528.698C336.892 530.691 337.77 533.017 339.764 533.919C340.737 534.347 341.805 534.37 342.778 533.991C343.775 533.611 344.535 532.875 344.962 531.902Z\" fill=\"white\"/>\n<path d=\"M351.464 534.395C350.8 536.46 351.939 538.691 354.004 539.379C355.001 539.711 356.069 539.617 357.019 539.142C357.968 538.667 358.656 537.836 358.989 536.839C359.653 534.774 358.514 532.543 356.449 531.855C356.045 531.712 355.642 531.665 355.215 531.665C354.598 531.665 353.98 531.807 353.434 532.092C352.485 532.567 351.797 533.398 351.464 534.395Z\" fill=\"white\"/>\n<path d=\"M370.382 535.581C369.338 535.368 368.294 535.558 367.415 536.127C366.537 536.697 365.92 537.575 365.706 538.62C365.255 540.756 366.608 542.845 368.744 543.296C370.857 543.747 372.969 542.394 373.42 540.257C373.871 538.121 372.518 536.032 370.382 535.581Z\" fill=\"white\"/>\n<path d=\"M384.647 537.836C384.505 537.836 384.362 537.836 384.244 537.836C382.25 537.836 380.541 539.355 380.327 541.373C380.09 543.533 381.68 545.479 383.84 545.716C384.884 545.811 385.929 545.526 386.736 544.862C387.567 544.197 388.065 543.248 388.184 542.203C388.302 541.159 387.994 540.115 387.329 539.308C386.665 538.477 385.715 537.978 384.671 537.86L384.647 537.836Z\" fill=\"white\"/>\n<path d=\"M399.055 538.596C396.872 538.596 395.115 540.376 395.115 542.536C395.115 544.696 396.895 546.476 399.055 546.476C401.215 546.476 402.996 544.696 402.996 542.536C402.996 540.376 401.215 538.596 399.055 538.596Z\" fill=\"white\"/>\n<path d=\"M416.976 544.268C417.641 543.438 417.949 542.417 417.83 541.373C417.617 539.355 415.908 537.836 413.914 537.836C413.772 537.836 413.629 537.836 413.51 537.836C412.466 537.955 411.517 538.453 410.852 539.284C410.187 540.115 409.879 541.135 409.998 542.18C410.235 544.34 412.158 545.906 414.341 545.693C415.386 545.574 416.335 545.075 417 544.245L416.976 544.268Z\" fill=\"white\"/>\n<path d=\"M431.882 541.61C432.452 540.732 432.641 539.663 432.428 538.643C432.214 537.598 431.597 536.72 430.719 536.151C430.078 535.723 429.342 535.51 428.583 535.51C428.298 535.51 428.037 535.533 427.752 535.605C426.731 535.818 425.829 536.435 425.26 537.314C424.69 538.192 424.5 539.26 424.714 540.281C424.927 541.301 425.544 542.203 426.423 542.773C427.301 543.343 428.369 543.556 429.39 543.319C430.41 543.105 431.312 542.488 431.882 541.61Z\" fill=\"white\"/>\n<path d=\"M444.13 539.355C446.195 538.69 447.334 536.459 446.67 534.37C446.338 533.373 445.649 532.543 444.7 532.068C444.13 531.783 443.537 531.641 442.92 531.641C442.516 531.641 442.089 531.712 441.685 531.83C439.62 532.495 438.481 534.726 439.146 536.815C439.478 537.812 440.166 538.643 441.116 539.117C442.065 539.592 443.133 539.687 444.13 539.355Z\" fill=\"white\"/>\n<path d=\"M458.395 533.896C460.389 533.018 461.291 530.668 460.389 528.674C459.724 527.202 458.3 526.324 456.781 526.324C456.235 526.324 455.689 526.443 455.191 526.656C453.197 527.535 452.295 529.885 453.197 531.878C454.075 533.872 456.425 534.774 458.419 533.872L458.395 533.896Z\" fill=\"white\"/>\n<path d=\"M466.583 525.518C467.675 527.393 470.096 528.057 471.971 526.966C472.873 526.443 473.538 525.589 473.823 524.568C474.108 523.548 473.965 522.48 473.419 521.578C472.684 520.32 471.354 519.607 470.001 519.607C469.337 519.607 468.648 519.774 468.031 520.13C466.156 521.221 465.492 523.642 466.583 525.518Z\" fill=\"white\"/>\n<path d=\"M485.668 513.127C484.386 511.37 481.917 510.967 480.161 512.249C478.405 513.53 478.001 515.999 479.283 517.755C480.564 519.512 483.033 519.915 484.789 518.634C485.644 518.016 486.214 517.091 486.38 516.046C486.546 515.002 486.285 513.958 485.668 513.103V513.127Z\" fill=\"white\"/>\n<path d=\"M491.079 508.76C492.527 510.374 495.043 510.516 496.657 509.045C497.44 508.332 497.915 507.359 497.962 506.315C498.01 505.271 497.654 504.25 496.966 503.467C495.518 501.853 493.002 501.71 491.388 503.182C489.774 504.63 489.631 507.146 491.103 508.76H491.079Z\" fill=\"white\"/>\n<path d=\"M500.573 495.8C500.621 496.844 501.096 497.817 501.879 498.529C502.662 499.241 503.707 499.597 504.727 499.55C505.772 499.503 506.745 499.028 507.457 498.245C508.169 497.461 508.525 496.441 508.454 495.396C508.406 494.352 507.931 493.379 507.148 492.667C506.412 492.002 505.487 491.646 504.514 491.646C504.442 491.646 504.371 491.646 504.3 491.646C503.255 491.693 502.282 492.168 501.57 492.951C500.858 493.735 500.502 494.755 500.573 495.8Z\" fill=\"white\"/>\n<path d=\"M517.046 486.377C517.664 485.522 517.925 484.478 517.758 483.434C517.592 482.389 517.023 481.487 516.168 480.847C515.314 480.229 514.269 479.968 513.225 480.134C512.181 480.301 511.279 480.87 510.638 481.725C509.356 483.481 509.759 485.95 511.516 487.232C513.272 488.513 515.741 488.133 517.023 486.353L517.046 486.377Z\" fill=\"white\"/>\n<path d=\"M518.518 469.643C517.996 470.545 517.853 471.613 518.114 472.634C518.375 473.654 519.04 474.509 519.966 475.031C520.868 475.553 521.936 475.696 522.956 475.435C523.977 475.15 524.832 474.509 525.354 473.583C525.876 472.681 526.018 471.613 525.757 470.592C525.496 469.572 524.832 468.717 523.906 468.195C523.289 467.839 522.624 467.673 521.936 467.673C521.604 467.673 521.247 467.72 520.915 467.815C519.895 468.1 519.04 468.741 518.518 469.667V469.643Z\" fill=\"white\"/>\n<path d=\"M530.291 454.761C529.769 454.524 529.223 454.429 528.701 454.429C527.182 454.429 525.734 455.307 525.093 456.779C524.215 458.772 525.093 461.098 527.087 462C529.081 462.879 531.407 462 532.309 460.007C533.211 458.013 532.309 455.687 530.315 454.785L530.291 454.761Z\" fill=\"white\"/>\n<path d=\"M537.53 442.703C537.055 441.754 536.225 441.065 535.228 440.733C533.163 440.068 530.932 441.208 530.243 443.273C529.579 445.338 530.718 447.569 532.783 448.257C534.848 448.922 537.079 447.783 537.767 445.718C538.1 444.721 538.005 443.653 537.53 442.703Z\" fill=\"white\"/>\n<path d=\"M541.708 430.977C541.922 429.957 541.732 428.889 541.162 428.01C540.592 427.132 539.714 426.515 538.67 426.301C538.385 426.254 538.124 426.207 537.839 426.207C537.08 426.207 536.344 426.42 535.703 426.847C534.825 427.417 534.208 428.295 533.994 429.34C533.78 430.36 533.97 431.428 534.54 432.307C535.11 433.185 536.011 433.802 537.032 434.016C538.077 434.229 539.121 434.016 539.999 433.47C540.877 432.9 541.494 432.022 541.708 430.977Z\" fill=\"white\"/>\n<path d=\"M540.592 411.562C540.45 411.562 540.307 411.562 540.165 411.562C539.263 411.562 538.385 411.87 537.696 412.44C536.889 413.104 536.367 414.054 536.249 415.098C536.13 416.143 536.438 417.187 537.103 417.994C537.768 418.825 538.717 419.323 539.761 419.442C540.782 419.537 541.85 419.252 542.657 418.587C543.464 417.923 543.986 416.973 544.105 415.929C544.224 414.885 543.915 413.84 543.251 413.033C542.586 412.202 541.637 411.704 540.592 411.585V411.562Z\" fill=\"white\"/>\n<path d=\"M540.949 396.703C538.765 396.703 537.009 398.483 537.009 400.643C537.009 402.803 538.789 404.583 540.949 404.583C543.109 404.583 544.889 402.803 544.889 400.643C544.889 398.483 543.109 396.703 540.949 396.703Z\" fill=\"white\"/>\n<path d=\"M540.592 389.748C541.637 389.63 542.586 389.131 543.251 388.301C543.915 387.47 544.224 386.449 544.105 385.405C543.986 384.36 543.488 383.411 542.657 382.746C541.945 382.177 541.091 381.868 540.189 381.868C540.046 381.868 539.904 381.868 539.761 381.868C538.717 381.987 537.768 382.485 537.103 383.316C536.438 384.147 536.13 385.167 536.249 386.212C536.367 387.256 536.866 388.206 537.696 388.87C538.527 389.535 539.548 389.82 540.592 389.725V389.748Z\" fill=\"white\"/>\n<path d=\"M541.162 373.299C541.732 372.421 541.922 371.353 541.708 370.332C541.494 369.312 540.877 368.41 539.999 367.84C539.358 367.413 538.622 367.199 537.863 367.199C537.578 367.199 537.317 367.223 537.032 367.294C535.988 367.508 535.11 368.125 534.54 369.003C533.97 369.881 533.78 370.949 533.994 371.97C534.208 372.991 534.825 373.893 535.703 374.462C536.581 375.032 537.626 375.246 538.67 375.008C539.691 374.795 540.592 374.178 541.162 373.299Z\" fill=\"white\"/>\n<path d=\"M530.505 355.022C530.031 355.972 529.936 357.04 530.268 358.037C530.6 359.034 531.289 359.864 532.238 360.339C533.188 360.814 534.256 360.909 535.253 360.576C537.318 359.912 538.457 357.681 537.792 355.592C537.46 354.595 536.772 353.764 535.822 353.29C535.253 353.005 534.659 352.862 534.042 352.862C533.638 352.862 533.211 352.934 532.808 353.052C531.811 353.384 530.98 354.073 530.505 355.022Z\" fill=\"white\"/>\n<path d=\"M530.291 346.548C532.284 345.67 533.186 343.32 532.284 341.326C531.62 339.855 530.196 338.977 528.677 338.977C528.131 338.977 527.585 339.095 527.086 339.309C525.092 340.187 524.191 342.537 525.092 344.531C525.971 346.525 528.297 347.403 530.314 346.525L530.291 346.548Z\" fill=\"white\"/>\n<path d=\"M523.93 333.138C525.805 332.046 526.47 329.625 525.378 327.75C524.856 326.848 524.001 326.183 522.981 325.922C522.648 325.827 522.292 325.78 521.96 325.78C521.272 325.78 520.607 325.97 519.99 326.302C518.115 327.394 517.45 329.815 518.542 331.69C519.634 333.565 522.055 334.23 523.93 333.138Z\" fill=\"white\"/>\n<path d=\"M517.047 314.932C516.263 313.864 515.077 313.294 513.842 313.294C513.035 313.294 512.228 313.532 511.54 314.054C509.783 315.336 509.38 317.804 510.662 319.561C511.943 321.317 514.412 321.721 516.168 320.439C517.023 319.822 517.593 318.896 517.759 317.852C517.925 316.807 517.664 315.763 517.047 314.908V314.932Z\" fill=\"white\"/>\n<path d=\"M501.57 308.358C502.282 309.141 503.255 309.592 504.3 309.663C505.32 309.711 506.365 309.355 507.148 308.643C507.931 307.931 508.406 306.957 508.453 305.913C508.501 304.869 508.145 303.848 507.456 303.065C506.673 302.21 505.605 301.759 504.513 301.759C503.564 301.759 502.638 302.092 501.878 302.78C501.095 303.492 500.621 304.465 500.573 305.51C500.526 306.554 500.882 307.575 501.57 308.358Z\" fill=\"white\"/>\n<path d=\"M490.059 295.422C490.107 296.467 490.581 297.44 491.365 298.152C492.148 298.864 493.145 299.244 494.213 299.149C495.257 299.101 496.231 298.626 496.943 297.843C497.655 297.06 498.011 296.039 497.94 294.995C497.892 293.95 497.417 292.977 496.634 292.265C495.898 291.601 494.973 291.245 493.999 291.245C493.928 291.245 493.857 291.245 493.786 291.245C492.741 291.292 491.768 291.767 491.056 292.55C490.344 293.333 489.988 294.354 490.059 295.398V295.422Z\" fill=\"white\"/>\n<path d=\"M485.668 288.182C486.95 286.425 486.546 283.933 484.79 282.675C484.101 282.177 483.294 281.916 482.487 281.916C482.274 281.916 482.06 281.916 481.87 281.963C480.826 282.129 479.924 282.699 479.283 283.553C478.666 284.408 478.405 285.452 478.571 286.497C478.737 287.541 479.307 288.443 480.161 289.084C481.918 290.366 484.386 289.962 485.668 288.206V288.182Z\" fill=\"white\"/>\n<path d=\"M466.584 275.792C466.062 276.718 465.919 277.762 466.18 278.783C466.441 279.804 467.106 280.658 468.032 281.18C468.934 281.703 470.002 281.845 471.022 281.584C472.043 281.299 472.898 280.658 473.42 279.733C473.942 278.831 474.084 277.762 473.823 276.742C473.538 275.721 472.898 274.867 471.972 274.344C471.355 273.988 470.69 273.822 470.002 273.822C469.669 273.822 469.313 273.87 468.981 273.965C467.96 274.25 467.106 274.89 466.584 275.792Z\" fill=\"white\"/>\n<path d=\"M460.389 272.635C461.267 270.641 460.389 268.315 458.395 267.413C457.873 267.176 457.327 267.081 456.805 267.081C455.286 267.081 453.838 267.959 453.197 269.43C452.319 271.424 453.197 273.75 455.191 274.652C456.164 275.08 457.232 275.103 458.205 274.724C459.202 274.344 459.962 273.608 460.389 272.635Z\" fill=\"white\"/>\n<path d=\"M444.13 261.954C443.726 261.812 443.323 261.764 442.896 261.764C442.279 261.764 441.661 261.907 441.115 262.191C440.166 262.666 439.478 263.497 439.145 264.494C438.813 265.491 438.908 266.559 439.383 267.508C439.858 268.458 440.688 269.146 441.685 269.478C443.75 270.167 445.981 269.027 446.67 266.939C447.334 264.874 446.195 262.642 444.13 261.954Z\" fill=\"white\"/>\n<path d=\"M432.427 262.69C432.641 261.669 432.451 260.601 431.881 259.723C431.312 258.845 430.433 258.228 429.389 258.014C429.104 257.966 428.843 257.919 428.558 257.919C427.799 257.919 427.063 258.133 426.422 258.56C425.544 259.129 424.927 260.008 424.713 261.052C424.262 263.188 425.615 265.277 427.751 265.728C428.772 265.942 429.84 265.752 430.718 265.182C431.597 264.612 432.214 263.734 432.427 262.69Z\" fill=\"white\"/>\n<path d=\"M414.318 255.617C414.175 255.617 414.033 255.617 413.914 255.617C411.92 255.617 410.211 257.136 409.998 259.153C409.879 260.198 410.187 261.242 410.852 262.049C411.517 262.88 412.466 263.378 413.51 263.497C415.67 263.711 417.617 262.144 417.854 259.984C417.973 258.94 417.664 257.895 417 257.088C416.335 256.258 415.386 255.759 414.341 255.64L414.318 255.617Z\" fill=\"white\"/>\n<\/svg>\n","./svg/marks_line.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M400.523 537.481C324.966 537.481 263.507 475.998 263.507 400.441C263.507 324.884 324.99 263.401 400.523 263.401C476.056 263.401 537.539 324.884 537.539 400.441C537.539 475.998 476.056 537.481 400.523 537.481ZM400.523 264.014C325.296 264.014 264.072 325.214 264.072 400.464C264.072 475.715 325.272 536.915 400.523 536.915C475.774 536.915 536.974 475.715 536.974 400.464C536.974 325.214 475.774 264.014 400.523 264.014Z\" fill=\"white\"/>\n<path d=\"M400.523 546.298C320.11 546.298 254.69 480.878 254.69 400.464C254.69 320.051 320.11 254.631 400.523 254.631C480.937 254.631 546.357 320.051 546.357 400.464C546.357 480.878 480.937 546.298 400.523 546.298ZM400.523 255.22C320.44 255.22 255.279 320.381 255.279 400.464C255.279 480.548 320.44 545.708 400.523 545.708C480.607 545.708 545.767 480.548 545.767 400.464C545.767 320.381 480.607 255.22 400.523 255.22Z\" fill=\"white\"/>\n<path d=\"M400.806 254.914H400.217V264.132H400.806V254.914Z\" fill=\"white\"/>\n<path d=\"M385.978 264.909L385.011 255.739L385.6 255.691L386.567 264.838L385.978 264.909Z\" fill=\"white\"/>\n<path d=\"M370.517 258.043L369.94 258.166L371.855 267.182L372.432 267.06L370.517 258.043Z\" fill=\"white\"/>\n<path d=\"M358.112 270.898L355.259 262.128L355.825 261.963L358.678 270.709L358.112 270.898Z\" fill=\"white\"/>\n<path d=\"M341.595 267.385L341.057 267.625L344.806 276.046L345.344 275.806L341.595 267.385Z\" fill=\"white\"/>\n<path d=\"M327.985 274.274L327.475 274.568L332.084 282.551L332.594 282.256L327.985 274.274Z\" fill=\"white\"/>\n<path d=\"M320.157 290.347L314.734 282.897L315.206 282.543L320.628 289.993L320.157 290.347Z\" fill=\"white\"/>\n<path d=\"M303.375 292.092L302.937 292.487L309.105 299.337L309.543 298.943L303.375 292.092Z\" fill=\"white\"/>\n<path d=\"M299.01 309.442L292.174 303.289L292.574 302.864L299.411 309.017L299.01 309.442Z\" fill=\"white\"/>\n<path d=\"M290.052 320.569L282.602 315.147L282.956 314.675L290.406 320.097L290.052 320.569Z\" fill=\"white\"/>\n<path d=\"M274.612 327.425L274.318 327.935L282.3 332.544L282.595 332.033L274.612 327.425Z\" fill=\"white\"/>\n<path d=\"M267.703 340.989L267.463 341.527L275.884 345.277L276.124 344.738L267.703 340.989Z\" fill=\"white\"/>\n<path d=\"M270.768 358.619L262.021 355.766L262.21 355.2L270.956 358.053L270.768 358.619Z\" fill=\"white\"/>\n<path d=\"M267.113 372.41L258.108 370.476L258.226 369.911L267.231 371.82L267.113 372.41Z\" fill=\"white\"/>\n<path d=\"M264.897 386.508L255.75 385.542L255.821 384.952L264.968 385.919L264.897 386.508Z\" fill=\"white\"/>\n<path d=\"M264.191 400.157H254.973V400.747H264.191V400.157Z\" fill=\"white\"/>\n<path d=\"M255.821 415.953L255.75 415.387L264.897 414.42L264.968 415.01L255.821 415.953Z\" fill=\"white\"/>\n<path d=\"M258.226 430.993L258.108 430.428L267.113 428.518L267.231 429.084L258.226 430.993Z\" fill=\"white\"/>\n<path d=\"M262.21 445.704L262.021 445.139L270.768 442.31L270.956 442.852L262.21 445.704Z\" fill=\"white\"/>\n<path d=\"M275.836 455.646L267.413 459.39L267.652 459.928L276.075 456.185L275.836 455.646Z\" fill=\"white\"/>\n<path d=\"M282.33 468.351L274.345 472.956L274.64 473.467L282.625 468.862L282.33 468.351Z\" fill=\"white\"/>\n<path d=\"M282.956 486.229L282.602 485.758L290.052 480.359L290.406 480.83L282.956 486.229Z\" fill=\"white\"/>\n<path d=\"M292.574 498.063L292.174 497.615L299.01 491.462L299.411 491.887L292.574 498.063Z\" fill=\"white\"/>\n<path d=\"M309.072 501.601L302.906 508.452L303.344 508.846L309.51 501.995L309.072 501.601Z\" fill=\"white\"/>\n<path d=\"M315.206 518.362L314.734 518.032L320.157 510.582L320.628 510.912L315.206 518.362Z\" fill=\"white\"/>\n<path d=\"M332.086 518.409L327.482 526.394L327.992 526.688L332.597 518.703L332.086 518.409Z\" fill=\"white\"/>\n<path d=\"M344.802 524.838L341.059 533.261L341.598 533.501L345.341 525.077L344.802 524.838Z\" fill=\"white\"/>\n<path d=\"M355.825 538.966L355.259 538.777L358.112 530.007L358.678 530.196L355.825 538.966Z\" fill=\"white\"/>\n<path d=\"M371.902 533.72L369.99 542.737L370.567 542.86L372.478 533.842L371.902 533.72Z\" fill=\"white\"/>\n<path d=\"M385.6 545.213L385.011 545.166L385.978 535.996L386.567 536.066L385.6 545.213Z\" fill=\"white\"/>\n<path d=\"M400.806 536.773H400.216V545.991H400.806V536.773Z\" fill=\"white\"/>\n<path d=\"M415.446 545.213L414.479 536.066L415.069 535.996L416.035 545.166L415.446 545.213Z\" fill=\"white\"/>\n<path d=\"M429.188 533.72L428.612 533.842L430.53 542.858L431.106 542.736L429.188 533.72Z\" fill=\"white\"/>\n<path d=\"M445.221 538.966L442.368 530.196L442.934 530.007L445.763 538.777L445.221 538.966Z\" fill=\"white\"/>\n<path d=\"M456.224 524.908L455.685 525.148L459.434 533.569L459.973 533.329L456.224 524.908Z\" fill=\"white\"/>\n<path d=\"M468.918 518.362L468.407 518.657L473.016 526.64L473.527 526.345L468.918 518.362Z\" fill=\"white\"/>\n<path d=\"M485.817 518.362L480.418 510.912L480.889 510.582L486.312 518.032L485.817 518.362Z\" fill=\"white\"/>\n<path d=\"M491.982 501.526L491.544 501.92L497.712 508.77L498.15 508.376L491.982 501.526Z\" fill=\"white\"/>\n<path d=\"M508.472 498.063L501.635 491.887L502.036 491.462L508.872 497.615L508.472 498.063Z\" fill=\"white\"/>\n<path d=\"M518.091 486.229L510.641 480.83L510.971 480.359L518.444 485.758L518.091 486.229Z\" fill=\"white\"/>\n<path d=\"M518.708 468.359L518.413 468.869L526.396 473.478L526.69 472.968L518.708 468.359Z\" fill=\"white\"/>\n<path d=\"M525.195 455.617L524.955 456.155L533.376 459.904L533.616 459.366L525.195 455.617Z\" fill=\"white\"/>\n<path d=\"M538.836 445.704L530.09 442.852L530.255 442.31L539.025 445.139L538.836 445.704Z\" fill=\"white\"/>\n<path d=\"M542.82 430.993L533.815 429.084L533.933 428.518L542.938 430.428L542.82 430.993Z\" fill=\"white\"/>\n<path d=\"M545.225 415.953L536.078 415.01L536.125 414.42L545.296 415.387L545.225 415.953Z\" fill=\"white\"/>\n<path d=\"M546.073 400.157H536.855V400.747H546.073V400.157Z\" fill=\"white\"/>\n<path d=\"M536.125 386.508L536.078 385.919L545.225 384.952L545.296 385.542L536.125 386.508Z\" fill=\"white\"/>\n<path d=\"M533.933 372.41L533.815 371.82L542.82 369.911L542.938 370.476L533.933 372.41Z\" fill=\"white\"/>\n<path d=\"M530.255 358.619L530.09 358.053L538.836 355.2L539.025 355.766L530.255 358.619Z\" fill=\"white\"/>\n<path d=\"M533.364 341.008L524.941 344.751L525.18 345.29L533.604 341.546L533.364 341.008Z\" fill=\"white\"/>\n<path d=\"M526.449 327.387L518.464 331.992L518.758 332.502L526.743 327.898L526.449 327.387Z\" fill=\"white\"/>\n<path d=\"M510.971 320.569L510.641 320.097L518.091 314.675L518.444 315.147L510.971 320.569Z\" fill=\"white\"/>\n<path d=\"M502.036 309.442L501.635 309.017L508.472 302.864L508.872 303.289L502.036 309.442Z\" fill=\"white\"/>\n<path d=\"M497.688 292.118L491.522 298.969L491.96 299.364L498.126 292.512L497.688 292.118Z\" fill=\"white\"/>\n<path d=\"M480.889 290.347L480.418 289.993L485.817 282.543L486.312 282.897L480.889 290.347Z\" fill=\"white\"/>\n<path d=\"M473.034 274.293L468.429 282.278L468.94 282.572L473.544 274.587L473.034 274.293Z\" fill=\"white\"/>\n<path d=\"M459.447 267.346L455.703 275.769L456.242 276.008L459.985 267.585L459.447 267.346Z\" fill=\"white\"/>\n<path d=\"M442.934 270.898L442.368 270.709L445.221 261.963L445.763 262.128L442.934 270.898Z\" fill=\"white\"/>\n<path d=\"M430.5 258.049L428.588 267.066L429.165 267.189L431.077 258.171L430.5 258.049Z\" fill=\"white\"/>\n<path d=\"M415.069 264.909L414.479 264.838L415.446 255.691L416.035 255.739L415.069 264.909Z\" fill=\"white\"/>\n<\/svg>\n","./svg/marks_small dots.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M400.357 259.042C401.664 259.042 402.723 257.983 402.723 256.676C402.723 255.369 401.664 254.31 400.357 254.31C399.05 254.31 397.99 255.369 397.99 256.676C397.99 257.983 399.05 259.042 400.357 259.042Z\" fill=\"white\"/>\n<path d=\"M385.377 259.847C386.684 259.847 387.743 258.788 387.743 257.481C387.743 256.174 386.684 255.115 385.377 255.115C384.07 255.115 383.01 256.174 383.01 257.481C383.01 258.788 384.07 259.847 385.377 259.847Z\" fill=\"white\"/>\n<path d=\"M370.543 262.189C371.85 262.189 372.91 261.13 372.91 259.823C372.91 258.516 371.85 257.457 370.543 257.457C369.236 257.457 368.177 258.516 368.177 259.823C368.177 261.13 369.236 262.189 370.543 262.189Z\" fill=\"white\"/>\n<path d=\"M356.026 266.068C357.333 266.068 358.393 265.008 358.393 263.701C358.393 262.394 357.333 261.335 356.026 261.335C354.719 261.335 353.66 262.394 353.66 263.701C353.66 265.008 354.719 266.068 356.026 266.068Z\" fill=\"white\"/>\n<path d=\"M342.022 271.46C343.329 271.46 344.389 270.4 344.389 269.093C344.389 267.786 343.329 266.727 342.022 266.727C340.715 266.727 339.656 267.786 339.656 269.093C339.656 270.4 340.715 271.46 342.022 271.46Z\" fill=\"white\"/>\n<path d=\"M328.628 278.265C329.935 278.265 330.995 277.205 330.995 275.899C330.995 274.592 329.935 273.532 328.628 273.532C327.321 273.532 326.262 274.592 326.262 275.899C326.262 277.205 327.321 278.265 328.628 278.265Z\" fill=\"white\"/>\n<path d=\"M316.04 286.438C317.347 286.438 318.406 285.378 318.406 284.071C318.406 282.765 317.347 281.705 316.04 281.705C314.733 281.705 313.673 282.765 313.673 284.071C313.673 285.378 314.733 286.438 316.04 286.438Z\" fill=\"white\"/>\n<path d=\"M304.354 295.903C305.661 295.903 306.72 294.844 306.72 293.537C306.72 292.23 305.661 291.17 304.354 291.17C303.047 291.17 301.987 292.23 301.987 293.537C301.987 294.844 303.047 295.903 304.354 295.903Z\" fill=\"white\"/>\n<path d=\"M293.742 306.514C295.049 306.514 296.108 305.455 296.108 304.148C296.108 302.841 295.049 301.782 293.742 301.782C292.435 301.782 291.375 302.841 291.375 304.148C291.375 305.455 292.435 306.514 293.742 306.514Z\" fill=\"white\"/>\n<path d=\"M284.299 318.175C285.606 318.175 286.666 317.116 286.666 315.809C286.666 314.502 285.606 313.443 284.299 313.443C282.992 313.443 281.933 314.502 281.933 315.809C281.933 317.116 282.992 318.175 284.299 318.175Z\" fill=\"white\"/>\n<path d=\"M276.126 330.787C277.433 330.787 278.493 329.728 278.493 328.421C278.493 327.114 277.433 326.055 276.126 326.055C274.819 326.055 273.76 327.114 273.76 328.421C273.76 329.728 274.819 330.787 276.126 330.787Z\" fill=\"white\"/>\n<path d=\"M269.295 344.156C270.602 344.156 271.662 343.097 271.662 341.79C271.662 340.483 270.602 339.423 269.295 339.423C267.988 339.423 266.929 340.483 266.929 341.79C266.929 343.097 267.988 344.156 269.295 344.156Z\" fill=\"white\"/>\n<path d=\"M263.928 358.183C265.235 358.183 266.294 357.123 266.294 355.817C266.294 354.51 265.235 353.45 263.928 353.45C262.621 353.45 261.561 354.51 261.561 355.817C261.561 357.123 262.621 358.183 263.928 358.183Z\" fill=\"white\"/>\n<path d=\"M260.024 372.674C261.331 372.674 262.391 371.615 262.391 370.308C262.391 369.001 261.331 367.941 260.024 367.941C258.717 367.941 257.658 369.001 257.658 370.308C257.658 371.615 258.717 372.674 260.024 372.674Z\" fill=\"white\"/>\n<path d=\"M257.682 387.506C258.989 387.506 260.048 386.447 260.048 385.14C260.048 383.833 258.989 382.773 257.682 382.773C256.375 382.773 255.315 383.833 255.315 385.14C255.315 386.447 256.375 387.506 257.682 387.506Z\" fill=\"white\"/>\n<path d=\"M256.902 402.509C258.209 402.509 259.268 401.45 259.268 400.143C259.268 398.836 258.209 397.776 256.902 397.776C255.595 397.776 254.535 398.836 254.535 400.143C254.535 401.45 255.595 402.509 256.902 402.509Z\" fill=\"white\"/>\n<path d=\"M257.682 417.511C258.989 417.511 260.048 416.452 260.048 415.145C260.048 413.838 258.989 412.779 257.682 412.779C256.375 412.779 255.315 413.838 255.315 415.145C255.315 416.452 256.375 417.511 257.682 417.511Z\" fill=\"white\"/>\n<path d=\"M260.024 432.344C261.331 432.344 262.391 431.285 262.391 429.978C262.391 428.671 261.331 427.611 260.024 427.611C258.717 427.611 257.658 428.671 257.658 429.978C257.658 431.285 258.717 432.344 260.024 432.344Z\" fill=\"white\"/>\n<path d=\"M263.928 446.835C265.235 446.835 266.294 445.775 266.294 444.468C266.294 443.161 265.235 442.102 263.928 442.102C262.621 442.102 261.561 443.161 261.561 444.468C261.561 445.775 262.621 446.835 263.928 446.835Z\" fill=\"white\"/>\n<path d=\"M269.295 460.862C270.602 460.862 271.662 459.803 271.662 458.496C271.662 457.189 270.602 456.129 269.295 456.129C267.988 456.129 266.929 457.189 266.929 458.496C266.929 459.803 267.988 460.862 269.295 460.862Z\" fill=\"white\"/>\n<path d=\"M276.126 474.23C277.433 474.23 278.493 473.171 278.493 471.864C278.493 470.557 277.433 469.498 276.126 469.498C274.819 469.498 273.76 470.557 273.76 471.864C273.76 473.171 274.819 474.23 276.126 474.23Z\" fill=\"white\"/>\n<path d=\"M284.299 486.842C285.606 486.842 286.666 485.783 286.666 484.476C286.666 483.169 285.606 482.109 284.299 482.109C282.992 482.109 281.933 483.169 281.933 484.476C281.933 485.783 282.992 486.842 284.299 486.842Z\" fill=\"white\"/>\n<path d=\"M293.742 498.503C295.049 498.503 296.108 497.443 296.108 496.136C296.108 494.829 295.049 493.77 293.742 493.77C292.435 493.77 291.375 494.829 291.375 496.136C291.375 497.443 292.435 498.503 293.742 498.503Z\" fill=\"white\"/>\n<path d=\"M304.354 509.115C305.661 509.115 306.72 508.056 306.72 506.749C306.72 505.442 305.661 504.382 304.354 504.382C303.047 504.382 301.987 505.442 301.987 506.749C301.987 508.056 303.047 509.115 304.354 509.115Z\" fill=\"white\"/>\n<path d=\"M316.04 518.58C317.347 518.58 318.406 517.52 318.406 516.213C318.406 514.907 317.347 513.847 316.04 513.847C314.733 513.847 313.673 514.907 313.673 516.213C313.673 517.52 314.733 518.58 316.04 518.58Z\" fill=\"white\"/>\n<path d=\"M328.628 526.753C329.935 526.753 330.995 525.693 330.995 524.386C330.995 523.079 329.935 522.02 328.628 522.02C327.321 522.02 326.262 523.079 326.262 524.386C326.262 525.693 327.321 526.753 328.628 526.753Z\" fill=\"white\"/>\n<path d=\"M342.022 533.559C343.329 533.559 344.389 532.499 344.389 531.192C344.389 529.886 343.329 528.826 342.022 528.826C340.715 528.826 339.656 529.886 339.656 531.192C339.656 532.499 340.715 533.559 342.022 533.559Z\" fill=\"white\"/>\n<path d=\"M356.026 538.95C357.333 538.95 358.393 537.89 358.393 536.584C358.393 535.277 357.333 534.217 356.026 534.217C354.719 534.217 353.66 535.277 353.66 536.584C353.66 537.89 354.719 538.95 356.026 538.95Z\" fill=\"white\"/>\n<path d=\"M370.543 542.829C371.85 542.829 372.91 541.77 372.91 540.463C372.91 539.156 371.85 538.097 370.543 538.097C369.236 538.097 368.177 539.156 368.177 540.463C368.177 541.77 369.236 542.829 370.543 542.829Z\" fill=\"white\"/>\n<path d=\"M385.377 545.196C386.684 545.196 387.743 544.136 387.743 542.829C387.743 541.522 386.684 540.463 385.377 540.463C384.07 540.463 383.01 541.522 383.01 542.829C383.01 544.136 384.07 545.196 385.377 545.196Z\" fill=\"white\"/>\n<path d=\"M400.357 545.976C401.664 545.976 402.723 544.917 402.723 543.61C402.723 542.303 401.664 541.244 400.357 541.244C399.05 541.244 397.99 542.303 397.99 543.61C397.99 544.917 399.05 545.976 400.357 545.976Z\" fill=\"white\"/>\n<path d=\"M415.361 545.196C416.668 545.196 417.727 544.136 417.727 542.829C417.727 541.522 416.668 540.463 415.361 540.463C414.054 540.463 412.994 541.522 412.994 542.829C412.994 544.136 414.054 545.196 415.361 545.196Z\" fill=\"white\"/>\n<path d=\"M430.194 542.829C431.501 542.829 432.56 541.77 432.56 540.463C432.56 539.156 431.501 538.097 430.194 538.097C428.887 538.097 427.827 539.156 427.827 540.463C427.827 541.77 428.887 542.829 430.194 542.829Z\" fill=\"white\"/>\n<path d=\"M444.711 538.95C446.018 538.95 447.077 537.89 447.077 536.584C447.077 535.277 446.018 534.217 444.711 534.217C443.404 534.217 442.344 535.277 442.344 536.584C442.344 537.89 443.404 538.95 444.711 538.95Z\" fill=\"white\"/>\n<path d=\"M458.715 533.559C460.022 533.559 461.081 532.499 461.081 531.192C461.081 529.886 460.022 528.826 458.715 528.826C457.408 528.826 456.348 529.886 456.348 531.192C456.348 532.499 457.408 533.559 458.715 533.559Z\" fill=\"white\"/>\n<path d=\"M472.108 526.753C473.415 526.753 474.475 525.693 474.475 524.386C474.475 523.079 473.415 522.02 472.108 522.02C470.801 522.02 469.742 523.079 469.742 524.386C469.742 525.693 470.801 526.753 472.108 526.753Z\" fill=\"white\"/>\n<path d=\"M484.697 518.58C486.004 518.58 487.064 517.52 487.064 516.213C487.064 514.907 486.004 513.847 484.697 513.847C483.39 513.847 482.331 514.907 482.331 516.213C482.331 517.52 483.39 518.58 484.697 518.58Z\" fill=\"white\"/>\n<path d=\"M496.359 509.115C497.666 509.115 498.725 508.056 498.725 506.749C498.725 505.442 497.666 504.382 496.359 504.382C495.052 504.382 493.992 505.442 493.992 506.749C493.992 508.056 495.052 509.115 496.359 509.115Z\" fill=\"white\"/>\n<path d=\"M506.996 498.503C508.303 498.503 509.363 497.443 509.363 496.136C509.363 494.829 508.303 493.77 506.996 493.77C505.689 493.77 504.63 494.829 504.63 496.136C504.63 497.443 505.689 498.503 506.996 498.503Z\" fill=\"white\"/>\n<path d=\"M516.438 486.842C517.745 486.842 518.804 485.783 518.804 484.476C518.804 483.169 517.745 482.109 516.438 482.109C515.131 482.109 514.071 483.169 514.071 484.476C514.071 485.783 515.131 486.842 516.438 486.842Z\" fill=\"white\"/>\n<path d=\"M524.611 474.23C525.918 474.23 526.978 473.171 526.978 471.864C526.978 470.557 525.918 469.498 524.611 469.498C523.304 469.498 522.245 470.557 522.245 471.864C522.245 473.171 523.304 474.23 524.611 474.23Z\" fill=\"white\"/>\n<path d=\"M531.442 460.862C532.749 460.862 533.809 459.803 533.809 458.496C533.809 457.189 532.749 456.129 531.442 456.129C530.135 456.129 529.076 457.189 529.076 458.496C529.076 459.803 530.135 460.862 531.442 460.862Z\" fill=\"white\"/>\n<path d=\"M536.809 446.835C538.116 446.835 539.176 445.775 539.176 444.468C539.176 443.161 538.116 442.102 536.809 442.102C535.502 442.102 534.443 443.161 534.443 444.468C534.443 445.775 535.502 446.835 536.809 446.835Z\" fill=\"white\"/>\n<path d=\"M540.713 432.344C542.02 432.344 543.079 431.285 543.079 429.978C543.079 428.671 542.02 427.611 540.713 427.611C539.406 427.611 538.346 428.671 538.346 429.978C538.346 431.285 539.406 432.344 540.713 432.344Z\" fill=\"white\"/>\n<path d=\"M543.056 417.511C544.363 417.511 545.422 416.452 545.422 415.145C545.422 413.838 544.363 412.779 543.056 412.779C541.749 412.779 540.689 413.838 540.689 415.145C540.689 416.452 541.749 417.511 543.056 417.511Z\" fill=\"white\"/>\n<path d=\"M543.836 402.509C545.143 402.509 546.202 401.45 546.202 400.143C546.202 398.836 545.143 397.776 543.836 397.776C542.529 397.776 541.469 398.836 541.469 400.143C541.469 401.45 542.529 402.509 543.836 402.509Z\" fill=\"white\"/>\n<path d=\"M543.056 387.506C544.363 387.506 545.422 386.447 545.422 385.14C545.422 383.833 544.363 382.773 543.056 382.773C541.749 382.773 540.689 383.833 540.689 385.14C540.689 386.447 541.749 387.506 543.056 387.506Z\" fill=\"white\"/>\n<path d=\"M540.713 372.674C542.02 372.674 543.079 371.615 543.079 370.308C543.079 369.001 542.02 367.941 540.713 367.941C539.406 367.941 538.346 369.001 538.346 370.308C538.346 371.615 539.406 372.674 540.713 372.674Z\" fill=\"white\"/>\n<path d=\"M536.809 358.183C538.116 358.183 539.176 357.123 539.176 355.817C539.176 354.51 538.116 353.45 536.809 353.45C535.502 353.45 534.443 354.51 534.443 355.817C534.443 357.123 535.502 358.183 536.809 358.183Z\" fill=\"white\"/>\n<path d=\"M531.442 344.156C532.749 344.156 533.809 343.097 533.809 341.79C533.809 340.483 532.749 339.423 531.442 339.423C530.135 339.423 529.076 340.483 529.076 341.79C529.076 343.097 530.135 344.156 531.442 344.156Z\" fill=\"white\"/>\n<path d=\"M524.611 330.787C525.918 330.787 526.978 329.728 526.978 328.421C526.978 327.114 525.918 326.055 524.611 326.055C523.304 326.055 522.245 327.114 522.245 328.421C522.245 329.728 523.304 330.787 524.611 330.787Z\" fill=\"white\"/>\n<path d=\"M516.438 318.175C517.745 318.175 518.804 317.116 518.804 315.809C518.804 314.502 517.745 313.443 516.438 313.443C515.131 313.443 514.071 314.502 514.071 315.809C514.071 317.116 515.131 318.175 516.438 318.175Z\" fill=\"white\"/>\n<path d=\"M506.996 306.514C508.303 306.514 509.363 305.455 509.363 304.148C509.363 302.841 508.303 301.782 506.996 301.782C505.689 301.782 504.63 302.841 504.63 304.148C504.63 305.455 505.689 306.514 506.996 306.514Z\" fill=\"white\"/>\n<path d=\"M496.359 295.903C497.666 295.903 498.725 294.844 498.725 293.537C498.725 292.23 497.666 291.17 496.359 291.17C495.052 291.17 493.992 292.23 493.992 293.537C493.992 294.844 495.052 295.903 496.359 295.903Z\" fill=\"white\"/>\n<path d=\"M484.697 286.438C486.004 286.438 487.064 285.378 487.064 284.071C487.064 282.765 486.004 281.705 484.697 281.705C483.39 281.705 482.331 282.765 482.331 284.071C482.331 285.378 483.39 286.438 484.697 286.438Z\" fill=\"white\"/>\n<path d=\"M472.108 278.265C473.415 278.265 474.475 277.205 474.475 275.899C474.475 274.592 473.415 273.532 472.108 273.532C470.801 273.532 469.742 274.592 469.742 275.899C469.742 277.205 470.801 278.265 472.108 278.265Z\" fill=\"white\"/>\n<path d=\"M458.715 271.46C460.022 271.46 461.081 270.4 461.081 269.093C461.081 267.786 460.022 266.727 458.715 266.727C457.408 266.727 456.348 267.786 456.348 269.093C456.348 270.4 457.408 271.46 458.715 271.46Z\" fill=\"white\"/>\n<path d=\"M444.711 266.068C446.018 266.068 447.077 265.008 447.077 263.701C447.077 262.394 446.018 261.335 444.711 261.335C443.404 261.335 442.344 262.394 442.344 263.701C442.344 265.008 443.404 266.068 444.711 266.068Z\" fill=\"white\"/>\n<path d=\"M430.194 262.189C431.501 262.189 432.56 261.13 432.56 259.823C432.56 258.516 431.501 257.457 430.194 257.457C428.887 257.457 427.827 258.516 427.827 259.823C427.827 261.13 428.887 262.189 430.194 262.189Z\" fill=\"white\"/>\n<path d=\"M415.361 259.847C416.668 259.847 417.727 258.788 417.727 257.481C417.727 256.174 416.668 255.115 415.361 255.115C414.054 255.115 412.994 256.174 412.994 257.481C412.994 258.788 414.054 259.847 415.361 259.847Z\" fill=\"white\"/>\n<\/svg>\n","./svg/numerals_big dots.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M401.6 161.79C408.281 161.79 413.697 156.374 413.697 149.693C413.697 143.012 408.281 137.596 401.6 137.596C394.919 137.596 389.503 143.012 389.503 149.693C389.503 156.374 394.919 161.79 401.6 161.79Z\" fill=\"white\"/>\n<path d=\"M276.248 194.746C282.929 194.746 288.345 189.33 288.345 182.649C288.345 175.968 282.929 170.552 276.248 170.552C269.567 170.552 264.151 175.968 264.151 182.649C264.151 189.33 269.567 194.746 276.248 194.746Z\" fill=\"white\"/>\n<path d=\"M184.153 285.978C190.834 285.978 196.25 280.561 196.25 273.88C196.25 267.199 190.834 261.783 184.153 261.783C177.472 261.783 172.056 267.199 172.056 273.88C172.056 280.561 177.472 285.978 184.153 285.978Z\" fill=\"white\"/>\n<path d=\"M150.031 411.028C156.712 411.028 162.129 405.612 162.129 398.931C162.129 392.25 156.712 386.834 150.031 386.834C143.35 386.834 137.934 392.25 137.934 398.931C137.934 405.612 143.35 411.028 150.031 411.028Z\" fill=\"white\"/>\n<path d=\"M182.987 536.38C189.668 536.38 195.084 530.964 195.084 524.283C195.084 517.602 189.668 512.186 182.987 512.186C176.306 512.186 170.89 517.602 170.89 524.283C170.89 530.964 176.306 536.38 182.987 536.38Z\" fill=\"white\"/>\n<path d=\"M274.218 628.475C280.899 628.475 286.315 623.059 286.315 616.378C286.315 609.697 280.899 604.281 274.218 604.281C267.537 604.281 262.121 609.697 262.121 616.378C262.121 623.059 267.537 628.475 274.218 628.475Z\" fill=\"white\"/>\n<path d=\"M399.269 662.596C405.95 662.596 411.366 657.18 411.366 650.499C411.366 643.818 405.95 638.402 399.269 638.402C392.588 638.402 387.172 643.818 387.172 650.499C387.172 657.18 392.588 662.596 399.269 662.596Z\" fill=\"white\"/>\n<path d=\"M524.621 629.641C531.302 629.641 536.718 624.224 536.718 617.543C536.718 610.862 531.302 605.446 524.621 605.446C517.94 605.446 512.523 610.862 512.523 617.543C512.523 624.224 517.94 629.641 524.621 629.641Z\" fill=\"white\"/>\n<path d=\"M616.716 538.409C623.397 538.409 628.813 532.993 628.813 526.312C628.813 519.631 623.397 514.215 616.716 514.215C610.035 514.215 604.618 519.631 604.618 526.312C604.618 532.993 610.035 538.409 616.716 538.409Z\" fill=\"white\"/>\n<path d=\"M650.837 413.359C657.518 413.359 662.934 407.943 662.934 401.262C662.934 394.581 657.518 389.165 650.837 389.165C644.156 389.165 638.74 394.581 638.74 401.262C638.74 407.943 644.156 413.359 650.837 413.359Z\" fill=\"white\"/>\n<path d=\"M617.881 288.007C624.563 288.007 629.979 282.591 629.979 275.91C629.979 269.229 624.563 263.812 617.881 263.812C611.2 263.812 605.784 269.229 605.784 275.91C605.784 282.591 611.2 288.007 617.881 288.007Z\" fill=\"white\"/>\n<path d=\"M526.65 195.912C533.331 195.912 538.747 190.496 538.747 183.814C538.747 177.133 533.331 171.717 526.65 171.717C519.969 171.717 514.553 177.133 514.553 183.814C514.553 190.496 519.969 195.912 526.65 195.912Z\" fill=\"white\"/>\n<\/svg>\n","./svg/numerals_big sectors.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M399.697 161.287L411.552 140.764C407.946 138.692 403.861 137.596 399.697 137.596C395.533 137.596 391.448 138.692 387.842 140.764L399.697 161.287Z\" fill=\"white\"/>\n<path d=\"M281.304 192.689V168.978C277.14 168.978 273.055 170.074 269.449 172.146C265.843 174.218 262.854 177.227 260.782 180.813L281.304 192.669V192.689Z\" fill=\"white\"/>\n<path d=\"M193.475 279.68L181.62 259.158C178.013 261.23 175.024 264.239 172.952 267.825C170.88 271.431 169.784 275.516 169.784 279.68H193.495H193.475Z\" fill=\"white\"/>\n<path d=\"M160.718 399.907L140.196 388.051C138.124 391.658 137.028 395.742 137.028 399.907C137.028 404.071 138.124 408.155 140.196 411.762L160.718 399.907Z\" fill=\"white\"/>\n<path d=\"M192.299 518.479H168.589C168.589 522.643 169.685 526.728 171.757 530.334C173.829 533.941 176.838 536.929 180.424 539.002L192.28 518.479H192.299Z\" fill=\"white\"/>\n<path d=\"M279.272 606.328L258.749 618.183C260.821 621.79 263.83 624.778 267.416 626.851C271.023 628.923 275.107 630.019 279.272 630.019V606.308V606.328Z\" fill=\"white\"/>\n<path d=\"M399.697 638.906L387.841 659.428C391.448 661.5 395.532 662.596 399.697 662.596C403.861 662.596 407.946 661.5 411.552 659.428L399.697 638.906Z\" fill=\"white\"/>\n<path d=\"M518.091 607.504V631.215C522.255 631.215 526.34 630.119 529.946 628.046C533.553 625.974 536.541 622.966 538.613 619.379L518.091 607.524V607.504Z\" fill=\"white\"/>\n<path d=\"M605.919 520.512L617.775 541.034C621.381 538.962 624.37 535.953 626.442 532.367C628.514 528.761 629.61 524.676 629.61 520.512H605.899H605.919Z\" fill=\"white\"/>\n<path d=\"M638.337 399.907L658.859 411.762C660.932 408.155 662.028 404.071 662.028 399.907C662.028 395.742 660.932 391.658 658.859 388.051L638.337 399.907Z\" fill=\"white\"/>\n<path d=\"M607.095 281.712H630.805C630.805 277.548 629.709 273.464 627.637 269.857C625.565 266.251 622.556 263.262 618.97 261.19L607.115 281.712H607.095Z\" fill=\"white\"/>\n<path d=\"M520.123 193.864L540.646 182.009C538.573 178.402 535.565 175.414 531.978 173.341C528.392 171.269 524.287 170.173 520.123 170.173V193.884V193.864Z\" fill=\"white\"/>\n<\/svg>\n","./svg/numerals_big squares.svg":"<svg width=\"799\" height=\"800\" viewBox=\"0 0 799 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M409.089 137.192H390.375V155.886H409.089V137.192Z\" fill=\"white\"/>\n<path d=\"M409.089 643.499H390.375V662.193H409.089V643.499Z\" fill=\"white\"/>\n<path d=\"M282.522 171.068H263.809V189.761H282.522V171.068Z\" fill=\"white\"/>\n<path d=\"M189.868 263.622H171.154V282.316H189.868V263.622Z\" fill=\"white\"/>\n<path d=\"M137.242 390.052V408.745H155.956V390.052H137.242Z\" fill=\"white\"/>\n<path d=\"M189.868 516.48H171.154V535.174H189.868V516.48Z\" fill=\"white\"/>\n<path d=\"M282.522 609.035H263.809V627.728H282.522V609.035Z\" fill=\"white\"/>\n<path d=\"M535.676 609.035H516.962V627.728H535.676V609.035Z\" fill=\"white\"/>\n<path d=\"M628.329 516.48H609.616V535.174H628.329V516.48Z\" fill=\"white\"/>\n<path d=\"M662.242 408.765V390.072H643.529V408.765H662.242Z\" fill=\"white\"/>\n<path d=\"M628.329 263.622H609.616V282.316H628.329V263.622Z\" fill=\"white\"/>\n<path d=\"M535.676 171.068H516.962V189.761H535.676V171.068Z\" fill=\"white\"/>\n<\/svg>\n","./svg/numerals_numbers.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M387.732 147.367H380.766V143.389C384.543 143.251 387.903 141.879 388.537 137.992H393.878V168.496H387.732V147.367Z\" fill=\"white\"/>\n<path d=\"M405.735 156.484C409.59 153.481 413.816 151.362 413.816 147.459C413.816 144.624 412.283 142.734 409.543 142.734C406.447 142.734 404.605 144.944 404.512 148.877H398.769C398.769 141.971 402.361 137.596 409.683 137.596C416.37 137.596 420.147 142.063 420.147 147.276C420.147 152.978 416.2 155.676 412.423 158.161C410.039 159.67 407.252 161.606 406.231 163.557H420.426V168.512H398.336C398.568 162.719 402.237 159.182 405.751 156.484H405.735Z\" fill=\"white\"/>\n<path d=\"M265.952 180.418H258.986V176.439C262.763 176.302 266.122 174.93 266.757 171.042H272.098V201.546H265.952V180.403V180.418Z\" fill=\"white\"/>\n<path d=\"M283.553 180.418H276.587V176.439C280.364 176.302 283.723 174.93 284.358 171.042H289.698V201.546H283.553V180.403V180.418Z\" fill=\"white\"/>\n<path d=\"M168.863 270.726H161.897V266.747C165.674 266.61 169.033 265.238 169.668 261.351H175.009V291.855H168.863V270.711V270.726Z\" fill=\"white\"/>\n<path d=\"M179.652 276.732C179.652 267.052 184.73 260.908 192.547 260.908C200.364 260.908 205.349 267.006 205.349 276.732C205.349 286.458 200.504 292.555 192.501 292.555C184.498 292.555 179.652 286.366 179.652 276.732ZM198.956 276.732C198.956 270.314 197.067 266.03 192.532 266.03C187.996 266.03 186.015 270.268 186.015 276.732C186.015 283.195 187.95 287.433 192.532 287.433C197.114 287.433 198.956 283.226 198.956 276.732Z\" fill=\"white\"/>\n<path d=\"M139.095 407.97H145.024C145.519 409.784 146.959 411.293 149.699 411.293C151.634 411.293 153.073 410.714 154.141 409.387C155.349 407.878 156.03 405.409 156.076 402.268H155.983C154.374 404.128 152.206 405.592 148.847 405.592C142.609 405.592 137.841 401.384 137.841 394.936C137.841 388.487 142.826 384.326 149.42 384.326C157.593 384.326 162.175 389.417 162.175 399.677C162.175 409.357 158.894 415.912 149.869 415.912C143.445 415.912 139.761 412.558 139.095 408V407.97ZM155.891 394.921C155.891 391.475 153.244 389.036 149.745 389.036C146.247 389.036 143.677 391.552 143.677 394.829C143.677 398.274 145.922 400.713 149.699 400.713C153.197 400.713 155.891 398.411 155.891 394.921Z\" fill=\"white\"/>\n<path d=\"M171.309 529.818C171.309 526.052 173.553 523.141 176.928 521.86V521.723C174.188 520.488 172.624 518.628 172.624 515.701C172.624 510.579 177.16 507.652 183.801 507.652C190.442 507.652 194.761 510.534 194.761 515.61C194.761 518.445 193.151 520.427 190.488 521.662V521.799C193.894 522.988 196.061 525.869 196.061 529.543C196.061 535.778 190.813 539.223 183.847 539.223C176.881 539.223 171.324 535.9 171.324 529.802L171.309 529.818ZM189.776 529.589C189.776 526.494 187.578 524.467 183.801 524.467C180.024 524.467 177.655 526.494 177.655 529.589C177.655 532.684 179.993 534.36 183.723 534.36C187.454 534.36 189.792 532.455 189.792 529.589H189.776ZM188.785 516.189C188.785 513.796 186.897 512.21 183.708 512.21C180.519 512.21 178.584 513.796 178.584 516.189C178.584 518.583 180.473 520.259 183.708 520.259C186.943 520.259 188.785 518.583 188.785 516.189Z\" fill=\"white\"/>\n<path d=\"M279.605 603.844V603.753H264.342V598.585H286.262V603.539C280.735 609.073 275.627 617.869 275.178 628.875H268.537C268.94 617.732 274.961 608.585 279.621 603.844H279.605Z\" fill=\"white\"/>\n<path d=\"M388.708 647.245C388.661 641.894 389.745 637.565 392.485 634.516C394.466 632.305 397.16 631.025 401.324 631.025C407.469 631.025 411.154 634.348 411.928 638.845H406.045C405.596 636.985 404.25 635.613 401.556 635.613C397.067 635.613 394.915 638.937 394.915 644.288H395.008C396.618 642.428 398.646 641.147 402.237 641.147C407.934 641.147 412.918 645.522 412.918 651.986C412.918 658.449 407.887 662.596 401.463 662.596C392.655 662.596 388.801 655.477 388.708 647.245ZM407.067 652.062C407.067 648.617 404.59 646.01 401.277 646.01C397.5 646.01 395.302 648.525 395.302 652.032C395.302 655.538 397.779 657.87 401.231 657.87C404.683 657.87 407.067 655.355 407.067 652.077V652.062Z\" fill=\"white\"/>\n<path d=\"M513.522 620.11H519.543C520.085 623.067 522.593 624.485 525.782 624.485C529.28 624.485 531.478 622.016 531.478 618.784C531.478 615.201 529.002 613.22 525.782 613.22C523.444 613.22 521.649 614.104 520.751 615.125H514.868L517.825 598.585H535.968V603.585H522.098L520.937 610.125H521.029C522.376 608.982 524.574 608.219 527.407 608.219C532.841 608.219 537.825 612.244 537.825 618.784C537.825 625.324 532.655 629.531 525.921 629.531C519.187 629.531 514.11 625.994 513.522 620.11Z\" fill=\"white\"/>\n<path d=\"M619.513 531.983H605.318V525.489L619.281 507.927H625.473V527.166H630.148V531.983H625.473V538.568H619.497V531.983H619.513ZM610.271 527.15H619.528V515.382H619.436L610.271 527.013V527.15Z\" fill=\"white\"/>\n<path d=\"M639.126 404.906H644.962C645.194 408.534 646.804 411.049 651.03 411.049C654.435 411.049 656.463 409.235 656.463 406.141C656.463 403.229 654.575 401.461 650.798 401.461H648.909V396.902H650.658C653.584 396.902 655.643 395.439 655.643 392.878C655.643 390.485 653.986 388.899 651.293 388.899C647.794 388.899 646.092 391.155 645.952 394.296H640.116C640.349 388.32 644.157 384.295 651.293 384.295C657.717 384.295 661.85 387.436 661.85 392.482C661.85 395.881 659.652 397.878 656.603 398.854V398.945C660.503 399.875 662.841 402.345 662.841 406.552C662.841 412.833 657.593 415.882 651.262 415.882C643.321 415.882 639.234 411.552 639.141 404.921L639.126 404.906Z\" fill=\"white\"/>\n<path d=\"M613.909 279.826C617.764 276.823 621.99 274.704 621.99 270.802C621.99 267.966 620.457 266.076 617.717 266.076C614.621 266.076 612.779 268.286 612.686 272.219H606.943C606.943 265.314 610.535 260.938 617.856 260.938C624.544 260.938 628.321 265.405 628.321 270.619C628.321 276.32 624.373 279.018 620.596 281.503C618.213 283.012 615.426 284.948 614.404 286.9H628.6V291.854H606.51C606.742 286.061 610.411 282.524 613.925 279.826H613.909Z\" fill=\"white\"/>\n<path d=\"M525.287 180.402H518.321V176.423C522.098 176.286 525.457 174.914 526.092 171.027H531.432V201.531H525.287V180.387V180.402Z\" fill=\"white\"/>\n<\/svg>\n","./svg/numerals_small dots.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M532.732 173.155C531.705 172.56 530.596 172.293 529.508 172.293C527.271 172.293 525.074 173.463 523.883 175.537C522.097 178.637 523.164 182.599 526.265 184.386C527.763 185.248 529.508 185.494 531.192 185.043C532.855 184.591 534.271 183.523 535.134 182.025C535.996 180.526 536.222 178.781 535.791 177.097C535.339 175.434 534.271 174.018 532.773 173.155H532.732Z\" fill=\"white\"/>\n<path d=\"M530.637 627.798C533.737 626.012 534.805 622.029 533.019 618.95C531.828 616.876 529.631 615.706 527.394 615.706C526.285 615.706 525.176 615.993 524.17 616.568C521.07 618.354 520.003 622.337 521.789 625.417C523.575 628.517 527.558 629.585 530.637 627.798Z\" fill=\"white\"/>\n<path d=\"M618.302 534.529C619.801 535.392 621.546 535.617 623.229 535.186C624.892 534.735 626.309 533.667 627.171 532.168C628.957 529.068 627.89 525.106 624.789 523.32C623.783 522.745 622.675 522.458 621.566 522.458C621.012 522.458 620.437 522.54 619.883 522.683C618.199 523.135 616.803 524.203 615.941 525.701C614.155 528.801 615.222 532.764 618.323 534.55L618.302 534.529Z\" fill=\"white\"/>\n<path d=\"M401.646 150.346C405.218 150.346 408.133 147.431 408.133 143.859C408.133 140.287 405.218 137.371 401.646 137.371C398.073 137.371 395.158 140.287 395.158 143.859C395.158 147.431 398.073 150.346 401.646 150.346Z\" fill=\"white\"/>\n<path d=\"M621.074 279.174C622.737 279.625 624.502 279.4 626.001 278.537C629.101 276.751 630.148 272.768 628.362 269.689C627.5 268.19 626.104 267.123 624.42 266.671C623.866 266.527 623.291 266.445 622.737 266.445C621.607 266.445 620.499 266.732 619.513 267.307C618.015 268.17 616.947 269.566 616.495 271.249C616.044 272.912 616.27 274.678 617.152 276.176C618.015 277.675 619.411 278.743 621.094 279.194L621.074 279.174Z\" fill=\"white\"/>\n<path d=\"M656.447 407.57C660.03 407.57 662.934 404.666 662.934 401.083C662.934 397.5 660.03 394.595 656.447 394.595C652.864 394.595 649.959 397.5 649.959 401.083C649.959 404.666 652.864 407.57 656.447 407.57Z\" fill=\"white\"/>\n<path d=\"M405.711 655.884C405.711 652.312 402.795 649.396 399.223 649.396C395.651 649.396 392.736 652.312 392.736 655.884C392.736 659.456 395.651 662.371 399.223 662.371C402.795 662.371 405.711 659.456 405.711 655.884Z\" fill=\"white\"/>\n<path d=\"M182.566 265.213C179.466 263.427 175.504 264.495 173.718 267.595C171.932 270.695 172.999 274.657 176.099 276.443C177.598 277.306 179.343 277.532 181.027 277.1C182.69 276.649 184.106 275.581 184.968 274.082C186.755 270.982 185.687 267.02 182.587 265.234L182.566 265.213Z\" fill=\"white\"/>\n<path d=\"M144.422 392.193C140.85 392.193 137.934 395.108 137.934 398.681C137.934 402.253 140.85 405.168 144.422 405.168C147.994 405.168 150.909 402.253 150.909 398.681C150.909 395.108 147.994 392.193 144.422 392.193Z\" fill=\"white\"/>\n<path d=\"M176.449 533.113C178.112 533.564 179.877 533.339 181.376 532.456C184.476 530.67 185.544 526.687 183.757 523.607C182.567 521.534 180.37 520.364 178.132 520.364C177.024 520.364 175.915 520.651 174.909 521.226C171.809 523.012 170.741 526.995 172.527 530.074C173.39 531.573 174.786 532.641 176.469 533.092L176.449 533.113Z\" fill=\"white\"/>\n<path d=\"M268.158 626.608C271.258 628.394 275.22 627.326 277.006 624.226C277.868 622.727 278.094 620.982 277.663 619.299C277.211 617.636 276.144 616.219 274.645 615.357C273.146 614.495 271.401 614.269 269.718 614.7C268.034 615.152 266.638 616.219 265.776 617.718C263.99 620.818 265.058 624.78 268.158 626.566V626.608Z\" fill=\"white\"/>\n<path d=\"M270.231 171.944C267.131 173.731 266.063 177.713 267.85 180.793C269.636 183.872 273.619 184.961 276.698 183.174C278.197 182.312 279.264 180.916 279.716 179.233C280.168 177.57 279.942 175.804 279.059 174.305C277.273 171.205 273.29 170.138 270.211 171.924L270.231 171.944Z\" fill=\"white\"/>\n<\/svg>\n","./svg/numerals_small sectors.svg":"<svg width=\"801\" height=\"800\" viewBox=\"0 0 801 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M400.593 150.72L407.136 139.372C405.153 138.227 402.883 137.614 400.593 137.614C398.303 137.614 396.034 138.227 394.05 139.372L400.593 150.72Z\" fill=\"white\"/>\n<path d=\"M276.934 183.537V170.431C274.644 170.431 272.375 171.044 270.391 172.189C268.408 173.334 266.752 174.99 265.607 176.973L276.955 183.516L276.934 183.537Z\" fill=\"white\"/>\n<path d=\"M185.213 274.379L178.67 263.032C176.687 264.177 175.03 265.833 173.885 267.816C172.74 269.799 172.127 272.069 172.127 274.359H185.233L185.213 274.379Z\" fill=\"white\"/>\n<path d=\"M184.006 523.763H170.9C170.9 526.053 171.513 528.323 172.658 530.306C173.803 532.289 175.459 533.945 177.443 535.09L183.986 523.743L184.006 523.763Z\" fill=\"white\"/>\n<path d=\"M274.849 615.485L263.501 622.028C264.646 624.011 266.303 625.668 268.286 626.813C270.269 627.958 272.539 628.571 274.829 628.571V615.465L274.849 615.485Z\" fill=\"white\"/>\n<path d=\"M400.594 649.508L394.051 660.856C396.034 662.001 398.304 662.614 400.594 662.614C402.884 662.614 405.153 662.001 407.136 660.856L400.594 649.508Z\" fill=\"white\"/>\n<path d=\"M524.232 616.692V629.798C526.522 629.798 528.792 629.184 530.775 628.039C532.758 626.894 534.415 625.238 535.56 623.255L524.212 616.712L524.232 616.692Z\" fill=\"white\"/>\n<path d=\"M615.975 525.849L622.517 537.196C624.501 536.051 626.157 534.395 627.302 532.412C628.447 530.429 629.06 528.159 629.06 525.869H615.954L615.975 525.849Z\" fill=\"white\"/>\n<path d=\"M649.978 400.063L661.325 406.606C662.47 404.623 663.084 402.353 663.084 400.063C663.084 397.773 662.47 395.504 661.325 393.52L649.978 400.063Z\" fill=\"white\"/>\n<path d=\"M617.161 276.465H630.267C630.267 274.175 629.653 271.905 628.508 269.922C627.363 267.939 625.707 266.282 623.724 265.137L617.181 276.485L617.161 276.465Z\" fill=\"white\"/>\n<path d=\"M526.318 184.743L537.666 178.2C536.521 176.217 534.864 174.561 532.881 173.416C530.898 172.271 528.628 171.657 526.338 171.657V184.763L526.318 184.743Z\" fill=\"white\"/>\n<path d=\"M151.19 400.063L139.842 393.52C138.697 395.504 138.083 397.773 138.083 400.063C138.083 402.353 138.697 404.623 139.842 406.606L151.19 400.063Z\" fill=\"white\"/>\n<\/svg>\n","./svg/numerals_small squares.svg":"<svg width=\"800\" height=\"800\" viewBox=\"0 0 800 800\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M627.634 523.33H617.259V533.705H627.634V523.33Z\" fill=\"white\"/>\n<path d=\"M147.496 394.849H137.121V405.224H147.496V394.849Z\" fill=\"white\"/>\n<path d=\"M533.454 617.53H523.079V627.905H533.454V617.53Z\" fill=\"white\"/>\n<path d=\"M533.454 171.838H523.079V182.213H533.454V171.838Z\" fill=\"white\"/>\n<path d=\"M662.121 394.849H651.746V405.224H662.121V394.849Z\" fill=\"white\"/>\n<path d=\"M627.634 266.017H617.259V276.392H627.634V266.017Z\" fill=\"white\"/>\n<path d=\"M404.809 137.371H394.434V147.746H404.809V137.371Z\" fill=\"white\"/>\n<path d=\"M181.962 266.017H171.587V276.392H181.962V266.017Z\" fill=\"white\"/>\n<path d=\"M404.809 651.996H394.434V662.371H404.809V651.996Z\" fill=\"white\"/>\n<path d=\"M181.962 523.33H171.587V533.705H181.962V523.33Z\" fill=\"white\"/>\n<path d=\"M276.142 171.838H265.767V182.213H276.142V171.838Z\" fill=\"white\"/>\n<path d=\"M276.142 617.53H265.767V627.905H276.142V617.53Z\" fill=\"white\"/>\n<\/svg>\n","./svg/numerals_two dots.svg":"<svg width=\"800\" height=\"799\" viewBox=\"0 0 800 799\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n<path d=\"M400.172 143.304C401.846 143.304 403.203 141.947 403.203 140.273C403.203 138.599 401.846 137.243 400.172 137.243C398.499 137.243 397.142 138.599 397.142 140.273C397.142 141.947 398.499 143.304 400.172 143.304Z\" fill=\"white\"/>\n<path d=\"M400.172 160.122C401.846 160.122 403.203 158.765 403.203 157.092C403.203 155.418 401.846 154.061 400.172 154.061C398.499 154.061 397.142 155.418 397.142 157.092C397.142 158.765 398.499 160.122 400.172 160.122Z\" fill=\"white\"/>\n<path d=\"M271.466 177.482C273.139 177.482 274.496 176.125 274.496 174.452C274.496 172.778 273.139 171.421 271.466 171.421C269.792 171.421 268.435 172.778 268.435 174.452C268.435 176.125 269.792 177.482 271.466 177.482Z\" fill=\"white\"/>\n<path d=\"M279.875 192.053C281.549 192.053 282.906 190.696 282.906 189.022C282.906 187.348 281.549 185.992 279.875 185.992C278.201 185.992 276.844 187.348 276.844 189.022C276.844 190.696 278.201 192.053 279.875 192.053Z\" fill=\"white\"/>\n<path d=\"M176.055 272.01C177.729 272.01 179.086 270.653 179.086 268.979C179.086 267.306 177.729 265.949 176.055 265.949C174.381 265.949 173.025 267.306 173.025 268.979C173.025 270.653 174.381 272.01 176.055 272.01Z\" fill=\"white\"/>\n<path d=\"M190.626 280.439C192.3 280.439 193.657 279.082 193.657 277.409C193.657 275.735 192.3 274.378 190.626 274.378C188.953 274.378 187.596 275.735 187.596 277.409C187.596 279.082 188.953 280.439 190.626 280.439Z\" fill=\"white\"/>\n<path d=\"M140.712 402.763C142.386 402.763 143.743 401.407 143.743 399.733C143.743 398.059 142.386 396.702 140.712 396.702C139.039 396.702 137.682 398.059 137.682 399.733C137.682 401.407 139.039 402.763 140.712 402.763Z\" fill=\"white\"/>\n<path d=\"M157.531 402.763C159.204 402.763 160.561 401.407 160.561 399.733C160.561 398.059 159.204 396.702 157.531 396.702C155.857 396.702 154.5 398.059 154.5 399.733C154.5 401.407 155.857 402.763 157.531 402.763Z\" fill=\"white\"/>\n<path d=\"M174.891 531.489C176.565 531.489 177.921 530.132 177.921 528.459C177.921 526.785 176.565 525.428 174.891 525.428C173.217 525.428 171.86 526.785 171.86 528.459C171.86 530.132 173.217 531.489 174.891 531.489Z\" fill=\"white\"/>\n<path d=\"M189.461 523.08C191.135 523.08 192.492 521.724 192.492 520.05C192.492 518.376 191.135 517.019 189.461 517.019C187.788 517.019 186.431 518.376 186.431 520.05C186.431 521.724 187.788 523.08 189.461 523.08Z\" fill=\"white\"/>\n<path d=\"M269.419 626.9C271.092 626.9 272.449 625.543 272.449 623.87C272.449 622.196 271.092 620.839 269.419 620.839C267.745 620.839 266.388 622.196 266.388 623.87C266.388 625.543 267.745 626.9 269.419 626.9Z\" fill=\"white\"/>\n<path d=\"M277.848 612.309C279.521 612.309 280.878 610.952 280.878 609.279C280.878 607.605 279.521 606.248 277.848 606.248C276.174 606.248 274.817 607.605 274.817 609.279C274.817 610.952 276.174 612.309 277.848 612.309Z\" fill=\"white\"/>\n<path d=\"M400.172 662.243C401.846 662.243 403.203 660.886 403.203 659.212C403.203 657.538 401.846 656.182 400.172 656.182C398.498 656.182 397.142 657.538 397.142 659.212C397.142 660.886 398.498 662.243 400.172 662.243Z\" fill=\"white\"/>\n<path d=\"M400.172 645.404C401.846 645.404 403.203 644.047 403.203 642.374C403.203 640.7 401.846 639.343 400.172 639.343C398.498 639.343 397.142 640.7 397.142 642.374C397.142 644.047 398.498 645.404 400.172 645.404Z\" fill=\"white\"/>\n<path d=\"M528.9 628.064C530.573 628.064 531.93 626.708 531.93 625.034C531.93 623.36 530.573 622.003 528.9 622.003C527.226 622.003 525.869 623.36 525.869 625.034C525.869 626.708 527.226 628.064 528.9 628.064Z\" fill=\"white\"/>\n<path d=\"M520.49 613.494C522.163 613.494 523.52 612.137 523.52 610.463C523.52 608.79 522.163 607.433 520.49 607.433C518.816 607.433 517.459 608.79 517.459 610.463C517.459 612.137 518.816 613.494 520.49 613.494Z\" fill=\"white\"/>\n<path d=\"M624.31 533.517C625.984 533.517 627.341 532.16 627.341 530.486C627.341 528.812 625.984 527.456 624.31 527.456C622.636 527.456 621.28 528.812 621.28 530.486C621.28 532.16 622.636 533.517 624.31 533.517Z\" fill=\"white\"/>\n<path d=\"M609.719 525.107C611.393 525.107 612.75 523.751 612.75 522.077C612.75 520.403 611.393 519.046 609.719 519.046C608.046 519.046 606.689 520.403 606.689 522.077C606.689 523.751 608.046 525.107 609.719 525.107Z\" fill=\"white\"/>\n<path d=\"M659.652 402.763C661.326 402.763 662.682 401.407 662.682 399.733C662.682 398.059 661.326 396.702 659.652 396.702C657.978 396.702 656.621 398.059 656.621 399.733C656.621 401.407 657.978 402.763 659.652 402.763Z\" fill=\"white\"/>\n<path d=\"M642.814 402.763C644.488 402.763 645.844 401.407 645.844 399.733C645.844 398.059 644.488 396.702 642.814 396.702C641.14 396.702 639.783 398.059 639.783 399.733C639.783 401.407 641.14 402.763 642.814 402.763Z\" fill=\"white\"/>\n<path d=\"M625.474 274.057C627.148 274.057 628.504 272.7 628.504 271.027C628.504 269.353 627.148 267.996 625.474 267.996C623.8 267.996 622.443 269.353 622.443 271.027C622.443 272.7 623.8 274.057 625.474 274.057Z\" fill=\"white\"/>\n<path d=\"M610.903 282.466C612.577 282.466 613.933 281.109 613.933 279.436C613.933 277.762 612.577 276.405 610.903 276.405C609.229 276.405 607.872 277.762 607.872 279.436C607.872 281.109 609.229 282.466 610.903 282.466Z\" fill=\"white\"/>\n<path d=\"M530.925 178.646C532.599 178.646 533.956 177.289 533.956 175.615C533.956 173.942 532.599 172.585 530.925 172.585C529.252 172.585 527.895 173.942 527.895 175.615C527.895 177.289 529.252 178.646 530.925 178.646Z\" fill=\"white\"/>\n<path d=\"M522.517 193.217C524.19 193.217 525.547 191.86 525.547 190.186C525.547 188.513 524.19 187.156 522.517 187.156C520.843 187.156 519.486 188.513 519.486 190.186C519.486 191.86 520.843 193.217 522.517 193.217Z\" fill=\"white\"/>\n<\/svg>\n"};
+</script>
+
+<script>
+const audioEl = document.getElementById('tick-sound');
+
+  // 1) 페이지 로드되면 한 번 재생 시도
+  window.addEventListener('load', () => {
+    if (!audioEl) return;
+    // controls 안보이게
+    audioEl.style.display = 'none';
+
+    // 자동재생 시도
+    audioEl.play().catch(() => {
+      // 여기로 오면 브라우저가 막은 것
+      // 다음 사용자 입력 때 다시 시도하도록 설정
+      const tryPlayOnce = () => {
+        audioEl.play().catch(()=>{});  // 한 번 더 시도
+        document.removeEventListener('click', tryPlayOnce);
+      };
+      document.addEventListener('click', tryPlayOnce, { once: true });
+    });
+  });
+
+/* ============ 상태/DOM ============ */
+const groups = ['dial','numerals','marks','hands'];
+const stageEl = document.getElementById('stage');
+const archiveList = document.getElementById('archiveList');
+const palette = document.getElementById('color-palette');
+
+const imgEls = {
+  dial:     document.getElementById('L-dial'),
+  numerals: document.getElementById('L-numerals'),
+  marks:    document.getElementById('L-marks'),
+
+  hour:     document.getElementById('L-hour'),
+  minute:   document.getElementById('L-minute'),
+  second:   document.getElementById('L-second'),
+};
+
+const defaultColors = {
+  dial: '#7ED0FF',
+  numerals: '#F7F0A4',
+  marks: '#D3F4C9',
+  hands: '#5F272C'
+};
+
+let state = {
+  dial:      { shape:null, color: defaultColors.dial },
+  numerals:  { shape:null, color: defaultColors.numerals },
+  marks:     { shape:null, color: defaultColors.marks },
+  hands:     { shape:null, color: defaultColors.hands }
+};
+
+/* 힌트 풍선 관련 */
+const hintEl = document.getElementById('color-hint');
+let hintDismissed = false;
+
+/* 💡 inactivity 타이머 관련 */
+let inactivityTimer = null;
+const INACTIVITY_MS = 5000; // 7초
+
+function showHint() {
+  if (!hintEl) return;
+  // 위치 다시 맞춰주고
+  positionHintToNumerals();
+  // 다시 보이게 (opacity 1로 페이드인)
+  hintEl.classList.remove('hidden');
+  hintDismissed = false;
+}
+
+function hideHint() {
+  if (!hintEl) return;
+  hintEl.classList.add('hidden');
+  hintDismissed = true;
+}
+
+function resetInactivityTimer() {
+  // 타이머 초기화하고 다시 5초 셋업
+  if (inactivityTimer) {
+    clearTimeout(inactivityTimer);
+  }
+  inactivityTimer = setTimeout(() => {
+    // 5초 동안 아무 interaction 없으면 힌트 다시 등장
+    showHint();
+  }, INACTIVITY_MS);
+}
+
+/* 전역 클릭 감지해서 타이머 리셋 */
+document.addEventListener('click', () => {
+  resetInactivityTimer();
+});
+
+/* ============ 파일명 매핑(예외 보정) ============ */
+const OVERRIDE = {
+  numerals: {
+    'numbers': 'numbers',
+    'big squares': 'big squares'
+  }
+};
+
+function filePath(group, value){
+  const mapped = (OVERRIDE[group] && OVERRIDE[group][value]) ? OVERRIDE[group][value] : value;
+  return `./svg/${group}_${mapped}.svg`;
+}
+
+/* ============ 히스토리(뒤/앞) ============ */
+const history = [];
+let histIndex = -1;
+
+function pushHistory(){
+  history.splice(histIndex+1);
+  history.push(JSON.parse(JSON.stringify(state)));
+  histIndex = history.length - 1;
+  updateNavButtons();
+}
+function restoreFromHistory(i){
+  if(i<0 || i>=history.length) return;
+  state = JSON.parse(JSON.stringify(history[i]));
+  histIndex = i;
+  applyStateToUI();
+  updateNavButtons();
+}
+function updateNavButtons(){
+  const b = document.getElementById('btn-back');
+  const f = document.getElementById('btn-forward');
+  if (b) b.style.opacity = (histIndex>0)?1:0.4;
+  if (f) f.style.opacity = (histIndex<history.length-1)?1:0.4;
+}
+
+/* ============ SVG 색 적용 ============ */
+/* 시계 레이어 SVG는 HTML 안에 내장(EMBEDDED_SVGS)되어 있어서
+   파일로 직접 열거나(file://) 어떤 호스팅에서도 fetch 없이 색을 입힐 수 있음.
+   결과는 data: URL이라 canvas 스냅샷도 막히지 않음. */
+async function colorizeSVGToURL(url, color){
+  let text = (window.EMBEDDED_SVGS || {})[url];
+  if (text == null) {
+    try {
+      const res = await fetch(url);
+      text = await res.text();
+    } catch(e) {
+      console.warn('fetch/colorize 실패 → 원본 경로 사용:', url, e);
+      return url;
+    }
+  }
+  const styled = text.replace(
+    /<svg([^>]*)>/i,
+    (m,attrs)=>`<svg${attrs}><style>*{fill:${color};stroke:${color};}</style>`
+  );
+  return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(styled);
+}
+
+/* ============ dial / numerals / marks 반영 ============ */
+async function applyLayer(group){
+  const {shape, color} = state[group];
+  const img = imgEls[group];
+  if(!img) return;
+  if(!shape){ 
+    img.removeAttribute('src'); 
+    return; 
+  }
+
+  const src = filePath(group, shape);
+  const coloredURL = await colorizeSVGToURL(src, color);
+  img.src = coloredURL;
+
+  let size = 90;
+  if (group === 'numerals' && state.dial.shape === 'house') {
+    size = 90 * 0.9; // 81
+  }
+
+  const offset = (100 - size) / 2;
+
+  img.style.width = `${size}%`;
+  img.style.height = `${size}%`;
+  img.style.objectFit = 'contain';
+  img.style.position = 'absolute';
+  img.style.left = `${offset}%`;
+  img.style.top = `${offset}%`;
+}
+
+/* ============ hands 세 장 반영 ============ */
+async function applyHandsLayer() {
+  const { shape, color } = state.hands;
+
+  if (!shape) {
+    imgEls.hour.removeAttribute('src');
+    imgEls.minute.removeAttribute('src');
+    imgEls.second.removeAttribute('src');
+    return;
+  }
+
+  const hourPath   = `./svg/hands_${shape}_hour.svg`;
+  const minutePath = `./svg/hands_${shape}_minute.svg`;
+  const secondPath = `./svg/hands_second.svg`;
+
+  const hourURL   = await colorizeSVGToURL(hourPath,   color);
+  const minuteURL = await colorizeSVGToURL(minutePath, color);
+  const secondURL = await colorizeSVGToURL(secondPath, color);
+
+  imgEls.hour.src   = hourURL;
+  imgEls.minute.src = minuteURL;
+  imgEls.second.src = secondURL;
+
+  [imgEls.hour, imgEls.minute, imgEls.second].forEach(img => {
+    img.style.width      = `90%`;
+    img.style.height     = `90%`;
+    img.style.objectFit  = 'contain';
+    img.style.position   = 'absolute';
+    img.style.left       = `5%`;
+    img.style.top        = `5%`;
+  });
+}
+
+/* ============ 시계 바늘 회전 ============ */
+function updateHandRotation() {
+  const now = new Date();
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const s = now.getSeconds();
+
+  const hourDeg   = ((h % 12) + m/60 + s/3600) * 30;
+  const minuteDeg = (m + s/60) * 6;
+  const secondDeg = s * 6;
+
+  if (imgEls.hour) {
+    imgEls.hour.style.transform   = `rotate(${hourDeg}deg)`;
+  }
+  if (imgEls.minute) {
+    imgEls.minute.style.transform = `rotate(${minuteDeg}deg)`;
+  }
+  if (imgEls.second) {
+    imgEls.second.style.transform = `rotate(${secondDeg}deg)`;
+  }
+}
+
+/* ============ 전체 state → 화면 반영 ============ */
+function applyStateToUI(){
+  document.querySelectorAll('.group').forEach(g=>{
+    const group = g.dataset.group;
+    const sel = state[group].shape;
+    g.querySelectorAll('.opt').forEach(o=>{
+      o.classList.toggle('active', o.dataset.value === sel);
+    });
+    const sw = g.querySelector('.color-swatch');
+    if(sw) sw.style.backgroundColor = state[group].color;
+  });
+
+  ['dial','numerals','marks'].forEach(applyLayer);
+
+  applyHandsLayer();
+  updateHandRotation();
+}
+
+/* ============ 옵션(도형) 클릭 ============ */
+document.querySelectorAll('.group .opt').forEach(opt=>{
+  opt.addEventListener('click', async (e)=>{
+    state[e.currentTarget.closest('.group').dataset.group].shape = e.currentTarget.dataset.value;
+
+    const wrap = e.currentTarget.parentElement;
+    wrap.querySelectorAll('.opt').forEach(el=>el.classList.remove('active'));
+    e.currentTarget.classList.add('active');
+
+    if (e.currentTarget.closest('.group').dataset.group === 'hands') {
+      await applyHandsLayer();
+    } else {
+      await applyLayer(e.currentTarget.closest('.group').dataset.group);
+    }
+
+    updateHandRotation();
+    pushHistory();
+  });
+});
+
+/* ============ 힌트 위치 numerals 우측에 붙이기 ============ */
+function positionHintToNumerals() {
+  if (!hintEl) return;
+
+  const numeralsSwatch = document.querySelector('.group[data-group="numerals"] .color-swatch');
+  if (!numeralsSwatch) return;
+
+  const rect = numeralsSwatch.getBoundingClientRect();
+  const offsetX = 8;
+  const offsetY = -10;
+  const hintW = hintEl.offsetWidth || 220;
+
+  let left = rect.right + offsetX;
+  let top  = rect.top   + offsetY;
+
+  // 오른쪽 공간이 부족하면(태블릿/모바일) 스와치 아래쪽에 배치
+  if (left + hintW > window.innerWidth - 8) {
+    left = Math.max(8, Math.min(rect.left + rect.width * 0.2, window.innerWidth - hintW - 8));
+    top  = rect.bottom + 4;
+  }
+
+  hintEl.style.left = left + 'px';
+  hintEl.style.top  = top  + 'px';
+
+  // 스크롤로 스와치가 화면 밖에 있거나 고정된 미리보기 뒤에 가려지면 숨김
+  const preview = document.querySelector('.box-preview');
+  let minTop = 0;
+  if (preview && getComputedStyle(preview).position === 'sticky') {
+    minTop = preview.getBoundingClientRect().bottom;
+  }
+  const offscreen = rect.top < minTop || rect.bottom > window.innerHeight;
+  hintEl.style.visibility = offscreen ? 'hidden' : '';
+}
+
+/* ============ 팔레트(컬러 변경) ============ */
+let currentSwatch = null;
+let currentGroup = null;
+
+document.querySelectorAll('.group .color-swatch').forEach(swatch=>{
+  swatch.addEventListener('click',(e)=>{
+    const clickedSwatch = e.currentTarget;
+    const group = clickedSwatch.closest('.group').dataset.group;
+
+    // 이미 같은 스와치를 눌렀고 팔레트가 열려있으면 → 닫기
+    if (!palette.hidden && currentSwatch === clickedSwatch) {
+      palette.hidden = true;
+      currentSwatch = null;
+      currentGroup = null;
+      // 힌트는 여기서 따로 안 만짐
+      return;
+    }
+
+    currentSwatch = clickedSwatch;
+    currentGroup  = group;
+
+    const rect = currentSwatch.getBoundingClientRect();
+    palette.hidden = false;
+    // 팔레트가 화면 오른쪽 밖으로 나가지 않게 보정
+    const pw = palette.offsetWidth;
+    const left = Math.max(4, Math.min(rect.left, window.innerWidth - pw - 4));
+    palette.style.left = `${left + window.scrollX}px`;
+    palette.style.top  = `${rect.bottom + 2 + window.scrollY}px`;
+
+    // 힌트는 클릭 시 사라지고 (=hideHint),
+    // 그리고 inactivity 타이머 재시작
+    hideHint();
+    resetInactivityTimer();
+  });
+});
+
+/* 팔레트에서 색 버튼 클릭 -> 실제 색 반영 */
+palette.addEventListener('click', async (e)=>{
+  const btn = e.target.closest('button[data-color]');
+  if(!btn) return;
+
+  const color = btn.dataset.color;
+  if (currentGroup) {
+    state[currentGroup].color = color;
+
+    if (currentSwatch) {
+      currentSwatch.style.backgroundColor = color;
+    }
+
+    if (currentGroup === 'hands') {
+      await applyHandsLayer();
+    } else {
+      await applyLayer(currentGroup);
+    }
+
+    updateHandRotation();
+    pushHistory();
+  }
+
+  palette.hidden = true;
+  currentSwatch = null; 
+  currentGroup = null;
+
+  // 색 찍고 나서도 다시 5초 기다렸다가 힌트 뜰 수 있게
+  resetInactivityTimer();
+});
+
+/* 팔레트 외부 클릭 시 팔레트 닫기 */
+document.addEventListener('click',(e)=>{
+  const clickedSwatch = e.target.classList && e.target.classList.contains('color-swatch');
+  if(!palette.hidden && !palette.contains(e.target) && !clickedSwatch){
+    palette.hidden = true;
+    currentSwatch = null; 
+    currentGroup = null;
+  }
+});
+
+/* ============ 뒤/앞 버튼 ============ */
+const backBtn = document.getElementById('btn-back');
+const fwdBtn  = document.getElementById('btn-forward');
+
+backBtn && backBtn.addEventListener('click', ()=>{
+  if(histIndex>0) restoreFromHistory(histIndex-1);
+});
+
+fwdBtn && fwdBtn.addEventListener('click', ()=>{
+  if(histIndex<history.length-1) restoreFromHistory(histIndex+1);
+});
+
+/* ============ 스냅샷 합성 (complete용) ============ */
+async function composeSnapshotDataURL() {
+  const size = 1000;
+  const canvas = document.createElement('canvas');
+  canvas.width = size; 
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  const drawList = [
+    imgEls.dial,
+    imgEls.numerals,
+    imgEls.marks,
+    imgEls.hour,
+    imgEls.minute,
+    imgEls.second,
+  ];
+
+  for (const img of drawList) {
+    if (!img || !img.src) continue;
+    if (!img.complete) {
+      await new Promise(r => {
+        img.addEventListener('load', r, { once:true });
+        img.addEventListener('error', r, { once:true });
+      });
+    }
+    if (!img.naturalWidth) continue;   // 깨진 이미지는 건너뛰기
+    ctx.save();
+
+    const match = img.style.transform && img.style.transform.match(/rotate\(([-0-9.]+)deg\)/);
+    if (match) {
+      const deg = parseFloat(match[1]);
+      const rad = deg * Math.PI/180;
+
+      const boxX = 0.05 * size;
+      const boxY = 0.05 * size;
+      const boxW = 0.90 * size;
+      const boxH = 0.90 * size;
+
+      const cx = boxX + boxW/2;
+      const cy = boxY + boxH/2;
+
+      ctx.translate(cx, cy);
+      ctx.rotate(rad);
+      ctx.translate(-cx, -cy);
+
+      ctx.drawImage(img, boxX, boxY, boxW, boxH);
+    } else {
+      ctx.drawImage(img, 0, 0, size, size);
+    }
+
+    ctx.restore();
+  }
+
+  return canvas.toDataURL('image/png');
+}
+
+/* ============ 팝업 관련 (complete!) ============ */
+const popup         = document.getElementById('popup');
+const minutesNowEl  = document.getElementById('minutesNow');
+const createNewBtn  = document.getElementById('btn-create-new');
+const logo          = document.getElementById('logo');
+const closeBtn      = document.querySelector('#popup .close');
+let pendingSnapshot = null;
+
+function pad(n){ return String(n).padStart(2,'0'); }
+function nowHHMMSS(){
+  const d = new Date();
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+/* complete! 버튼 -> 팝업 띄우기 */
+document.getElementById('btn-complete').addEventListener('click', async ()=>{
+  // 스냅샷이 실패해도 팝업은 반드시 뜨도록
+  try {
+    pendingSnapshot = await composeSnapshotDataURL();
+  } catch (e) {
+    console.warn('스냅샷 생성 실패:', e);
+    pendingSnapshot = null;
+  }
+
+  const snapshotEl = document.getElementById('popupSnapshot');
+  if (snapshotEl && pendingSnapshot) {
+    snapshotEl.src = pendingSnapshot;
+  }
+
+  if (minutesNowEl) minutesNowEl.textContent = nowHHMMSS();
+
+  if (popup) popup.classList.add('show');
+});
+
+/* 팝업의 create new! -> 아카이브 prepend + 초기화 + 팝업 닫기 */
+createNewBtn && createNewBtn.addEventListener('click', ()=>{
+  if (pendingSnapshot) {
+    const thumb = new Image();
+    thumb.src = pendingSnapshot;
+    thumb.style.width = '80%';
+    thumb.style.display = 'block';
+    thumb.style.margin = '16px auto';
+
+    if (archiveList.firstChild) {
+      archiveList.insertBefore(thumb, archiveList.firstChild);
+    } else {
+      archiveList.appendChild(thumb);
+    }
+  }
+
+  state.dial.shape      = null;
+  state.numerals.shape  = null;
+  state.marks.shape     = null;
+  state.hands.shape     = null;
+
+  imgEls.dial.removeAttribute('src');
+  imgEls.numerals.removeAttribute('src');
+  imgEls.marks.removeAttribute('src');
+  imgEls.hour.removeAttribute('src');
+  imgEls.minute.removeAttribute('src');
+  imgEls.second.removeAttribute('src');
+
+  document.querySelectorAll('.group .opt').forEach(o=>o.classList.remove('active'));
+
+  pushHistory();
+
+  pendingSnapshot = null;
+  popup && popup.classList.remove('show');
+});
+
+/* 로고 클릭해도 팝업 닫히게 */
+logo && logo.addEventListener('click', () => {
+  popup && popup.classList.remove('show');
+});
+
+/* 팝업 닫기(X) / 바깥 클릭 */
+closeBtn && closeBtn.addEventListener('click', ()=> popup && popup.classList.remove('show'));
+popup && popup.addEventListener('click', (e)=>{
+  if (e.target === popup) popup.classList.remove('show');
+});
+
+/* ============ 초기 세팅 ============ */
+(function init(){
+  groups.forEach(g=>{
+    const sw = document.querySelector(`.group[data-group="${g}"] .color-swatch`);
+    if(sw) sw.style.backgroundColor = state[g].color;
+  });
+
+  document.querySelectorAll('#color-palette button[data-color]').forEach(btn=>{
+    btn.style.backgroundColor = btn.dataset.color;
+    btn.title = btn.dataset.color;
+  });
+
+  pushHistory();
+
+  positionHintToNumerals();
+
+  updateHandRotation();
+
+  resetInactivityTimer();
+})();
+
+/* 창 크기 바뀔 때마다 힌트 위치 갱신 */
+window.addEventListener('resize', positionHintToNumerals);
+/* 스크롤할 때도 힌트 위치 갱신 (모바일/태블릿, 낮은 화면의 옵션 스크롤) */
+window.addEventListener('scroll', positionHintToNumerals, { passive: true });
+document.querySelector('.box-custom-options')
+  .addEventListener('scroll', positionHintToNumerals, { passive: true });
+/* 화면 가로 크기가 바뀌면(회전 등) 열려 있던 팔레트는 닫기
+   (모바일 주소창이 접힐 때 생기는 세로 resize에는 반응하지 않음) */
+let lastVW = window.innerWidth;
+window.addEventListener('resize', () => {
+  if (window.innerWidth === lastVW) return;
+  lastVW = window.innerWidth;
+  palette.hidden = true;
+  currentSwatch = null;
+  currentGroup = null;
+});
+
+/* 매초마다 바늘 회전 업데이트 */
+setInterval(updateHandRotation, 1000);
+
+</script>
